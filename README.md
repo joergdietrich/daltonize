@@ -21,6 +21,7 @@ and copy daltonize.py to a location in your $PATH. Daltonize depends
 
 ## Usage
 
+```
 $ daltonize.py -h
 usage: daltonize.py [-h] [-s | -d] [-t {d,p,t}] input_image output_image
 
@@ -35,6 +36,7 @@ optional arguments:
   -t {d,p,t}, --type {d,p,t}
                         type of color blindness (deuteranopia, protanopia,
                         tritanopia), default is deuteranopia (most common)
+```
 
 ## Credits
 
@@ -64,7 +66,7 @@ blindness see on these plates:
 | 8	    |  6          |  x		    |       x               |
 
 You can verify the r/g deficiency column by running daltonize.py with
-the -s/--simulate option and -t/--type d or p on these images.
+the `-s/--simulate` option and `-t/--type d` or `p` on these images.
 
 ## License
 
