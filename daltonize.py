@@ -1,197 +1,158 @@
-# -*- coding: iso-8859-1 -*-
+#!/usr/bin/env python
+
 """
-   MoinMoin - Daltonize ImageCorrection - Effect
-
-   Daltonize image correction algorithm implemented according to
-   http://scien.stanford.edu/class/psych221/projects/05/ofidaner/colorblindness_project.htm
-
-   Many thanks to Onur Fidaner, Poliang Lin and Nevran Ozguven for their work
-   on this topic and for releasing their complete research results to the public
-   (unlike the guys from http://www.vischeck.com/). This is of great help for a
-   lot of people!
-
-   Please note:
-   Daltonize ImageCorrection needs
-   * Python Image Library (PIL) from http://www.pythonware.com/products/pil/
-   * NumPy from http://numpy.scipy.org/
-
-   You can call Daltonize from the command-line with
-   "daltonize.py C:\image.png"
-
-   Explanations:
-       * Normally this module is called from Moin.AttachFile.get_file
-       * @param filename, fpath is the filename/fullpath to an image in the attachment
-         dir of a page. 
-       * @param color_deficit can either be
-           - 'd' for Deuteranope image correction
-           - 'p' for Protanope image correction
-           - 't' for Tritanope image correct
-   Idea:
-       * Since daltonizing an image takes quite some time and we don't want visually
-         impaired users to wait so long until the page is loaded, this module has a
-         command-line option built-in which could be called as a separate process
-         after a file upload of a non visually impaired user in "AttachFile", e.g
-         "spawnlp(os.NO_WAIT...)"
-       * "AttachFile": If an image attachment is deleted or overwritten by a new version
-         please make sure to delete the daltonized images and redaltonize them.
-       * But all in all: Concrete implementation of ImageCorrection needs further
-         thinking and discussion. This is only a first prototype as proof of concept.
-
-   @copyright: 2007 by Oliver Siemoneit
-   @license: GNU GPL, see COPYING for details.
+   Written by Joerg Dietrich <astro@joergdietrich.com>. Copyright 2015
+   Based on original code by Oliver Siemoneit. Copyright 2007
+   This code is licensed under the GNU GPL version 2, see COPYING for details.
 """
 
-import os.path
+from __future__ import print_function, division
 
-def execute(filename, fpath, color_deficit='d'):
-    modified_filename = "%s-%s-%s" % ('daltonize', color_deficit, filename)
-    head, tail = os.path.split(fpath)
-    # Save transformed image to the cache dir 
-    #head = head.replace('attachments', 'cache') 
-    modified_fpath = os.path.join(head, modified_filename)
+import os
 
-    # Look if requested image is already available
-    if os.path.isfile(modified_fpath):
-        return (modified_filename, modified_fpath)
+from PIL import Image
+import numpy as np
 
-    helpers_available = True
-    try:
-        import numpy
-        from PIL import Image
-    except:
-        helpers_available = False
-    if not helpers_available:
-        return (filename, fpath)
 
-    # Get image data
-    im = Image.open(fpath)
-    if im.mode in ['1', 'L']: # Don't process black/white or grayscale images
-        return (filename, fpath)
-    im = im.copy() 
-    im = im.convert('RGB') 
-    RGB = numpy.asarray(im, dtype=float)
+def transform_colorspace(img, mat):
+    """Transform image to a different color space.
 
-    # Transformation matrix for Deuteranope (a form of red/green color deficit)
-    lms2lmsd = numpy.array([[1,0,0],[0.494207,0,1.24827],[0,0,1]])
-    # Transformation matrix for Protanope (another form of red/green color deficit)
-    lms2lmsp = numpy.array([[0,2.02344,-2.52581],[0,1,0],[0,0,1]])
-    # Transformation matrix for Tritanope (a blue/yellow deficit - very rare)
-    lms2lmst = numpy.array([[1,0,0],[0,1,0],[-0.395913,0.801109,0]])
+    Arguments:
+    ----------
+    img : array of shape (M, N, 3)
+    mat : array of shape (3, 3)
+        conversion matrix to different color space
+
+    Returns:
+    --------
+    out : array of shape (M, N, 3)
+    """
+    # Fast element (=pixel) wise matrix multiplication
+    return np.einsum("ij, ...j", mat, img)
+
+
+def simulate(img, color_deficit="d", return_original_rgb=False):
+    """Simulate the effet of colorblindness on an image.
+
+    Arguments:
+    ----------
+    img : PIL.PngImagePlugin.PngImageFile, input image
+    color_deficit : {"d", "p", "t"}, optional
+        type of colorblindness, d for deuteronopia (default),
+        p for protonapia,
+        t for tritanopia
+    return_original_rgb : bool, optional
+        Return the original image as rgb if True, default False
+
+    Returns:
+    --------
+    sim_rgb : array of shape (M, N, 3)
+        simulated image in RGB format
+    rgb : array of shape (M, N, 3)
+        original image in RGB format. Returned only if return_original_rgb is
+        True
+    """
     # Colorspace transformation matrices
-    rgb2lms = numpy.array([[17.8824,43.5161,4.11935],[3.45565,27.1554,3.86714],[0.0299566,0.184309,1.46709]])
-    lms2rgb = numpy.linalg.inv(rgb2lms)
-    # Daltonize image correction matrix
-    err2mod = numpy.array([[0,0,0],[0.7,1,0],[0.7,0,1]])
+    cb_matrices = {
+        "d": np.array([[1, 0, 0], [0.494207, 0, 1.24827], [0, 0, 1]]),
+        "p": np.array([[0, 2.02344, -2.52581], [0, 1, 0], [0, 0, 1]]),
+        "t": np.array([[1, 0, 0], [0, 1, 0], [-0.395913, 0.801109, 0]]),
+    }
+    rgb2lms = np.array([[17.8824, 43.5161, 4.11935],
+                        [3.45565, 27.1554, 3.86714],
+                        [0.0299566, 0.184309, 1.46709]])
+    # Precomputed inverse
+    lms2rgb = np.array([[8.09444479e-02, -1.30504409e-01,  1.16721066e-01],
+                        [-1.02485335e-02,  5.40193266e-02, -1.13614708e-01],
+                        [-3.65296938e-04, -4.12161469e-03,  6.93511405e-01]])
 
-    # Get the requested image correction
-    if color_deficit == 'd':
-        lms2lms_deficit = lms2lmsd
-    elif color_deficit == 'p':
-        lms2lms_deficit = lms2lmsp
-    elif color_deficit == 't':
-        lms2lms_deficit = lms2lmst
-    else:
-        return (filename, fpath)
-    
-    # Transform to LMS space
-    LMS = numpy.zeros_like(RGB)               
-    for i in range(RGB.shape[0]):
-        for j in range(RGB.shape[1]):
-            rgb = RGB[i,j,:3]
-            LMS[i,j,:3] = numpy.dot(rgb2lms, rgb)
+    img = img.copy()
+    img = img.convert('RGB')
 
+    rgb = np.asarray(img, dtype=float)
+    # first go from RBG to LMS space
+    lms = transform_colorspace(rgb, rgb2lms)
     # Calculate image as seen by the color blind
-    _LMS = numpy.zeros_like(RGB)  
-    for i in range(RGB.shape[0]):
-        for j in range(RGB.shape[1]):
-            lms = LMS[i,j,:3]
-            _LMS[i,j,:3] = numpy.dot(lms2lms_deficit, lms)
+    sim_lms = transform_colorspace(lms, cb_matrices[color_deficit])
+    # Transform back to RBG
+    sim_rgb = transform_colorspace(sim_lms, lms2rgb)
+    if return_original_rgb:
+        return sim_rgb, rgb
+    return sim_rgb
 
-    _RGB = numpy.zeros_like(RGB) 
-    for i in range(RGB.shape[0]):
-        for j in range(RGB.shape[1]):
-            _lms = _LMS[i,j,:3]
-            _RGB[i,j,:3] = numpy.dot(lms2rgb, _lms)
 
-##    # Save simulation how image is perceived by a color blind
-##    for i in range(RGB.shape[0]):
-##        for j in range(RGB.shape[1]):
-##            _RGB[i,j,0] = max(0, _RGB[i,j,0])
-##            _RGB[i,j,0] = min(255, _RGB[i,j,0])
-##            _RGB[i,j,1] = max(0, _RGB[i,j,1])
-##            _RGB[i,j,1] = min(255, _RGB[i,j,1])
-##            _RGB[i,j,2] = max(0, _RGB[i,j,2])
-##            _RGB[i,j,2] = min(255, _RGB[i,j,2])
-##    simulation = _RGB.astype('uint8')
-##    im_simulation = Image.fromarray(simulation, mode='RGB')
-##    simulation_filename = "%s-%s-%s" % ('daltonize-simulation', color_deficit, filename)
-##    simulation_fpath = os.path.join(head, simulation_filename)
-##    im_simulation.save(simulation_fpath)
+def daltonize(rgb, sim_rgb):
+    """
+    Adjust color palette of an image to compensate color blindness.
 
-    # Calculate error between images
-    error = (RGB-_RGB)
+    Arguments:
+    ----------
+    rgb : array of shape (M, N, 3)
+        original image in RGB format
+    sim_rgb : array of shape (M, N, 3)
+        image with simulated color blindness
 
-    # Daltonize
-    ERR = numpy.zeros_like(RGB) 
-    for i in range(RGB.shape[0]):
-        for j in range(RGB.shape[1]):
-            err = error[i,j,:3]
-            ERR[i,j,:3] = numpy.dot(err2mod, err)
+    Returns:
+    dtpn : array of shape (M, N, 3)
+        image in RGB format with colors adjusted
+    """
+    err2mod = np.array([[0, 0, 0], [0.7, 1, 0], [0.7, 0, 1]])
+    err = transform_colorspace(rgb - sim_rgb, err2mod)
+    dtpn = err + rgb
+    return dtpn
 
-    dtpn = ERR + RGB
-    
-    for i in range(RGB.shape[0]):
-        for j in range(RGB.shape[1]):
-            dtpn[i,j,0] = max(0, dtpn[i,j,0])
-            dtpn[i,j,0] = min(255, dtpn[i,j,0])
-            dtpn[i,j,1] = max(0, dtpn[i,j,1])
-            dtpn[i,j,1] = min(255, dtpn[i,j,1])
-            dtpn[i,j,2] = max(0, dtpn[i,j,2])
-            dtpn[i,j,2] = min(255, dtpn[i,j,2])
 
-    result = dtpn.astype('uint8')
-    
-    # Save daltonized image
-    im_converted = Image.fromarray(result, mode='RGB')
-    im_converted.save(modified_fpath)
-    return (modified_filename, modified_fpath)
+def array_to_img(arr):
+    """Convert a numpy array to a PIL image.
+
+    Arguments:
+    ----------
+    arr : array of shape (M, N, 3)
+
+    Returns:
+    --------
+    img : PIL.Image.Image
+        RGB image created from array
+    """
+    # clip values to lie in the range [0, 255]
+    comp_arr1 = np.zeros_like(arr)
+    comp_arr2 = np.ones_like(arr) * 255
+    arr = np.maximum(comp_arr1, arr)
+    arr = np.minimum(comp_arr2, arr)
+    arr = arr.astype('uint8')
+    img = Image.fromarray(arr, mode='RGB')
+    return img
 
 
 if __name__ == '__main__':
+    import argparse
     import sys
-    print "Daltonize image correction for color blind users"
-    
-    if len(sys.argv) != 2:
-        print "Calling syntax: daltonize.py [fullpath to image file]"
-        print "Example: daltonize.py C:/wikiinstance/data/pages/PageName/attachments/pic.png"
-        sys.exit(1)
 
-    if not (os.path.isfile(sys.argv[1])):
-        print "Given file does not exist"
-        sys.exit(1)
+    parser = argparse.ArgumentParser()
+    parser.add_argument("input_image", type=str)
+    parser.add_argument("output_image", type=str)
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument("-s", "--simulate", help="create simulated image",
+                        action="store_true")
+    group.add_argument("-d", "--daltonize",
+                        help="adjust image color palette for color blindness",
+                       action="store_true")
+    parser.add_argument("-t", "--type", type=str, choices=["d", "p", "t"],
+                        help="type of color blindness (deuteranopia, "
+                        "protanopia, tritanopia), default is deuteranopia "
+                        "(most common)")
+    args = parser.parse_args()
 
-    extpos = sys.argv[1].rfind(".")
-    if not (extpos > 0 and sys.argv[1][extpos:].lower() in ['.gif', '.jpg', '.jpeg', '.png', '.bmp', '.ico', ]):
-        print "Given file is not an image"
-        sys.exit(1)
-
-    path, fname = os.path.split(sys.argv[1])
-    print "Please wait. Daltonizing in progress..."
-
-    colorblindness = { 'd': 'Deuteranope',
-                       'p': 'Protanope',
-                       't': 'Tritanope',}
-
-    for col_deficit in ['d', 'p', 't']:
-        print "Creating %s corrected version" % colorblindness[col_deficit]
-        modified_filename, modified_fpath = execute(fname, sys.argv[1], col_deficit)
-        if modified_fpath == sys.argv[1]:
-            print "Error while processing image: PIL/NumPy missing and/or source file is a grayscale image."
-        else:
-            print "Image successfully daltonized"
-
-    
-
-
-
-
+    if args.simulate is False and args.daltonize is False:
+        print("No action specified, assume daltonizing")
+        args.daltonize = True
+        
+    orig_img = Image.open(args.input_image)
+    sim_rgb, rgb = simulate(orig_img, args.type, return_original_rgb=True)
+    if args.simulate:
+        sim_img = array_to_img(sim_rgb)
+        sim_img.save(args.output_image)
+    if args.daltonize:
+        dalton_rgb = daltonize(rgb, sim_rgb)
+        dalton_img = array_to_img(dalton_rgb)
+        dalton_img.save(args.output_image)
