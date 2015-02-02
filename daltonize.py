@@ -97,6 +97,9 @@ def daltonize(rgb, sim_rgb):
         image in RGB format with colors adjusted
     """
     err2mod = np.array([[0, 0, 0], [0.7, 1, 0], [0.7, 0, 1]])
+    # rgb - sim_rgb contains the color information that dichromats
+    # cannot see. err2mod rotates this to a part of the spectrum that
+    # they can see.
     err = transform_colorspace(rgb - sim_rgb, err2mod)
     dtpn = err + rgb
     return dtpn
@@ -146,6 +149,8 @@ if __name__ == '__main__':
     if args.simulate is False and args.daltonize is False:
         print("No action specified, assume daltonizing")
         args.daltonize = True
+    if args.type is None:
+        args.type = "d"
         
     orig_img = Image.open(args.input_image)
     sim_rgb, rgb = simulate(orig_img, args.type, return_original_rgb=True)
