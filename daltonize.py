@@ -32,7 +32,7 @@ def transform_colorspace(img, mat):
 
 
 def simulate(img, color_deficit="d", return_original_rgb=False):
-    """Simulate the effet of colorblindness on an image.
+    """Simulate the effect of color blindness on an image.
 
     Arguments:
     ----------
