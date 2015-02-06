@@ -245,40 +245,46 @@ def arrays_from_dict(mpl_colors):
     return rgb, alpha
 
 
-def replace_mpl_colors(mpl_colors, rgba, i=0):
+def set_mpl_colors(mpl_colors, rgba, i=0):
     """
     """
-    for key in mpl_colors.keys():
-        i = set_color_values(mpl_colors[key], rgba, i)
-
-        
-def set_color_values(mpl_colors, rgba, i):
     cc = mpl.colors.ColorConverter()
     # Note that the order must match the insertion order in
     # get_child_colors()
     color_keys = ("color", "fc", "ec", "mec", "mfc", "mfcalt")
-    for color_key in color_keys:
-        try:
-            color = mpl_colors[color_key]
-            # skip unset colors, otherwise they are turned into black.
-            if color == 'none':
-                continue
-            color_shape = cc.to_rgba_array(color).shape
-            if len(color_shape) > 1:
+    for key in mpl_colors.keys():
+        if key in color_keys:
+            continue
+        for color_key in color_keys:
+            try:
+                color = mpl_colors[key][color_key]
+                # skip unset colors, otherwise they are turned into black.
+                if color == 'none':
+                    continue
+                color_shape = cc.to_rgba_array(color).shape
                 j = color_shape[0]
-            else:
-                j = 1
-            mpl_colors[color_key] = rgba[i:i+j, :].reshape(j, 4)
-            i += j
-        except KeyError:
-            pass
+                target_color = rgba[i:i+j, :].reshape(j, 4)
+                target_color = target_color[0]
+                i += j
+                if color_key == "color":
+                    key.set_color(target_color)
+                elif color_key == "fc":
+                    key.set_facecolor(target_color)
+                elif color_key == "ec":
+                    key.set_edgecolor(target_color)
+                elif color_key == "mec":
+                    key.set_markeredgecolor(target_color)
+                elif color_key == "mfc":
+                    key.set_markerfacecolor(target_color)
+                elif color_key == "mfcalt":
+                    key.set_markerfacecoloralt(target_color)
+            except KeyError:
+                pass
         for key in mpl_colors.keys():
-            if key in color_keys:
-                continue
-            i = set_color_values(mpl_colors[key], rgba, i)
+            i = set_mpl_colors(mpl_colors[key], rgba, i)
     return i
-                    
 
+        
 def simulate_mpl(fig, color_deficit='d', copy=False):
     """
     fig : matplotlib.figure.Figure
@@ -312,7 +318,6 @@ def simulate_mpl(fig, color_deficit='d', copy=False):
     r, g, b = np.split(sim_rgb, 3, 2)
     rgba = np.concatenate((r, g, b, alpha.reshape(alpha.size, 1, 1)),
                            axis=2).reshape(-1, 4)
-    replace_mpl_colors(mpl_colors, rgba)
     set_mpl_colors(mpl_colors, rgba)
     fig.canvas.draw()
     return fig
