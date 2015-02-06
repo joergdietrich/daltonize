@@ -260,7 +260,6 @@ def set_colors_from_array(instance, mpl_colors, rgba, i=0):
                 continue
             color_shape = cc.to_rgba_array(color).shape
             j = color_shape[0]
-            print(color_shape)
             target_color = rgba[i:i+j, :]
             if j == 1:
                 target_color = target_color[0]
