@@ -245,44 +245,49 @@ def arrays_from_dict(mpl_colors):
     return rgb, alpha
 
 
-def set_mpl_colors(mpl_colors, rgba, i=0):
+def set_colors_from_array(instance, mpl_colors, rgba, i=0):
     """
     """
     cc = mpl.colors.ColorConverter()
     # Note that the order must match the insertion order in
     # get_child_colors()
     color_keys = ("color", "fc", "ec", "mec", "mfc", "mfcalt")
-    for key in mpl_colors.keys():
-        if key in color_keys:
-            continue
-        for color_key in color_keys:
-            try:
-                color = mpl_colors[key][color_key]
-                # skip unset colors, otherwise they are turned into black.
-                if color == 'none':
-                    continue
-                color_shape = cc.to_rgba_array(color).shape
-                j = color_shape[0]
-                target_color = rgba[i:i+j, :].reshape(j, 4)
-                target_color = target_color[0]
-                i += j
-                if color_key == "color":
-                    key.set_color(target_color)
-                elif color_key == "fc":
-                    key.set_facecolor(target_color)
-                elif color_key == "ec":
-                    key.set_edgecolor(target_color)
-                elif color_key == "mec":
-                    key.set_markeredgecolor(target_color)
-                elif color_key == "mfc":
-                    key.set_markerfacecolor(target_color)
-                elif color_key == "mfcalt":
-                    key.set_markerfacecoloralt(target_color)
-            except KeyError:
-                pass
+    for color_key in color_keys:
+        try:
+            color = mpl_colors[color_key]
+            # skip unset colors, otherwise they are turned into black.
+            if color == 'none':
+                continue
+            color_shape = cc.to_rgba_array(color).shape
+            j = color_shape[0]
+            target_color = rgba[i:i+j, :].reshape(j, 4)
+            target_color = target_color[0]
+            i += j
+            if color_key == "color":
+                instance.set_color(target_color)
+            elif color_key == "fc":
+                instance.set_facecolor(target_color)
+            elif color_key == "ec":
+                instance.set_edgecolor(target_color)
+            elif color_key == "mec":
+                instance.set_markeredgecolor(target_color)
+            elif color_key == "mfc":
+                instance.set_markerfacecolor(target_color)
+            elif color_key == "mfcalt":
+                instance.set_markerfacecoloralt(target_color)
+        except KeyError:
+            pass
         for key in mpl_colors.keys():
-            i = set_mpl_colors(mpl_colors[key], rgba, i)
+            if key in color_keys:
+                continue
+            i = set_mpl_colors(key, mpl_colors[key], rgba, i)
     return i
+
+
+def set_mpl_colors(mpl_colors, rgba):
+    i = 0
+    for key in mpl_colors.keys():
+        i = set_colors_from_array(key, mpl_colors[key], rgba, i)
 
         
 def simulate_mpl(fig, color_deficit='d', copy=False):
@@ -308,7 +313,7 @@ def simulate_mpl(fig, color_deficit='d', copy=False):
         fig = pickle.loads(pfig)
     mpl_colors = get_mpl_colors(fig)
     rgb, alpha = arrays_from_dict(mpl_colors)
-    sim_rgb = simulate(array_to_img(rgb), color_deficit)
+    sim_rgb = simulate(array_to_img(rgb * 255), color_deficit) / 255
     # clip values to lie in the range [0, 1]
     comp_arr1 = np.zeros_like(sim_rgb)
     comp_arr2 = np.ones_like(sim_rgb)
