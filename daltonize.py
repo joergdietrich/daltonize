@@ -14,7 +14,7 @@ try:
     import pickle
 except ImportError:
     import cPickle as pickle
-    
+
 from PIL import Image
 import numpy as np
 try:
@@ -22,7 +22,7 @@ try:
     _no_mpl = False
 except ImportError:
     _no_mpl = True
-    
+
 
 def transform_colorspace(img, mat):
     """Transform image to a different color space.
@@ -160,7 +160,7 @@ def get_child_colors(child, mpl_colors):
     """
     Recursively enter all colors of a matplotlib objects and its
     children into a dictionary.
-    
+
     Arguments:
     ----------
     child : a matplotlib object
@@ -212,8 +212,8 @@ def get_mpl_colors(fig):
 
 
 def get_key_colors(mpl_colors, rgb, alpha):
-    if _no_mpl == True:
-        raise ImportError("matplotlib not found, " \
+    if _no_mpl is True:
+        raise ImportError("matplotlib not found, "
                           "can only deal with pixel images")
     cc = mpl.colors.ColorConverter()
     # Note that the order must match the insertion order in
@@ -250,7 +250,7 @@ def arrays_from_dict(mpl_colors):
     Returns:
     --------
     rgb : array of shape (M, 1, 3)
-        RGB values of colors in a line image, M is the total number of 
+        RGB values of colors in a line image, M is the total number of
         non-unique colors
     alpha : array of shape (M, 1)
         Alpha channel values of all mpl instances
@@ -305,6 +305,8 @@ def set_colors_from_array(instance, mpl_colors, rgba, i=0):
 
 
 def set_mpl_colors(mpl_colors, rgba):
+    """
+    """
     i = 0
     for key in mpl_colors.keys():
         i = set_colors_from_array(key, mpl_colors[key], rgba, i)
@@ -327,13 +329,15 @@ def _join_rgb_alpha(rgb, alpha):
 
 def simulate_mpl(fig, color_deficit='d', copy=False):
     """
+    Simulate color blindness on a matplotlib figure.
+
     fig : matplotlib.figure.Figure
     color_deficit : {"d", "p", "t"}, optional
         type of colorblindness, d for deuteronopia (default),
         p for protonapia,
         t for tritanopia
     copy : bool, optional
-        should simulation happen on a copy (True) or the original 
+        should simulation happen on a copy (True) or the original
         (False, default)
 
     Returns:
@@ -351,17 +355,19 @@ def simulate_mpl(fig, color_deficit='d', copy=False):
     set_mpl_colors(mpl_colors, rgba)
     fig.canvas.draw()
     return fig
-    
+
 
 def daltonize_mpl(fig, color_deficit='d', copy=False):
     """
+    Daltonize a matplotlib figure.
+
     fig : matplotlib.figure.Figure
     color_deficit : {"d", "p", "t"}, optional
         type of colorblindness, d for deuteronopia (default),
         p for protonapia,
         t for tritanopia
     copy : bool, optional
-        should simulation happen on a copy (True) or the original 
+        should daltonization happen on a copy (True) or the original
         (False, default)
 
     Returns:
@@ -380,8 +386,8 @@ def daltonize_mpl(fig, color_deficit='d', copy=False):
     set_mpl_colors(mpl_colors, rgba)
     fig.canvas.draw()
     return fig
-   
-    
+
+
 if __name__ == '__main__':
     import argparse
     import sys
@@ -391,9 +397,9 @@ if __name__ == '__main__':
     parser.add_argument("output_image", type=str)
     group = parser.add_mutually_exclusive_group()
     group.add_argument("-s", "--simulate", help="create simulated image",
-                        action="store_true")
+                       action="store_true")
     group.add_argument("-d", "--daltonize",
-                        help="adjust image color palette for color blindness",
+                       help="adjust image color palette for color blindness",
                        action="store_true")
     parser.add_argument("-t", "--type", type=str, choices=["d", "p", "t"],
                         help="type of color blindness (deuteranopia, "
