@@ -128,13 +128,13 @@ def array_to_img(arr):
         RGB image created from array
     """
     # clip values to lie in the range [0, 255]
-    arr = clip_arrary(arr)
+    arr = clip_array(arr)
     arr = arr.astype('uint8')
     img = Image.fromarray(arr, mode='RGB')
     return img
 
 
-def clip_arrary(arr, min_value=0, max_value=255):
+def clip_array(arr, min_value=0, max_value=255):
     """Ensure that all values in an array are between min and max values.
 
     Arguments:
@@ -323,7 +323,7 @@ def _prepare_call_sim(fig, color_deficit):
 
 
 def _join_rgb_alpha(rgb, alpha):
-    rgb = clip_arrary(rgb, 0, 1)
+    rgb = clip_array(rgb, 0, 1)
     r, g, b = np.split(rgb, 3, 2)
     rgba = np.concatenate((r, g, b, alpha.reshape(alpha.size, 1, 1)),
                           axis=2).reshape(-1, 4)
