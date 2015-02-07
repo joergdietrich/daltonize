@@ -264,9 +264,7 @@ def arrays_from_dict(mpl_colors):
     return rgb, alpha
 
 
-def set_colors_from_array(instance, mpl_colors, rgba, i=0):
-    """
-    """
+def _set_colors_from_array(instance, mpl_colors, rgba, i=0):
     cc = mpl.colors.ColorConverter()
     # Note that the order must match the insertion order in
     # get_child_colors()
@@ -297,19 +295,24 @@ def set_colors_from_array(instance, mpl_colors, rgba, i=0):
                 instance.set_markerfacecoloralt(target_color)
         except KeyError:
             pass
-        for key in mpl_colors.keys():
-            if key in color_keys:
-                continue
-            i = set_mpl_colors(key, mpl_colors[key], rgba, i)
     return i
 
 
 def set_mpl_colors(mpl_colors, rgba):
     """
+    Recursively set the colors in a color dictionary to new values in rgba.
+
+    Arguments:
+    ----------
+    mpl_colors : OrderedDict
+        dictionary with all colors of all children, matplotlib instances are
+        keys
+
+    rgba : array of shape (M, 1, 4) containing rgb, alpha channels
     """
     i = 0
     for key in mpl_colors.keys():
-        i = set_colors_from_array(key, mpl_colors[key], rgba, i)
+        i = _set_colors_from_array(key, mpl_colors[key], rgba, i)
 
 
 def _prepare_call_sim(fig, color_deficit):
@@ -331,6 +334,8 @@ def simulate_mpl(fig, color_deficit='d', copy=False):
     """
     Simulate color blindness on a matplotlib figure.
 
+    Arguments:
+    ----------
     fig : matplotlib.figure.Figure
     color_deficit : {"d", "p", "t"}, optional
         type of colorblindness, d for deuteronopia (default),
@@ -361,6 +366,8 @@ def daltonize_mpl(fig, color_deficit='d', copy=False):
     """
     Daltonize a matplotlib figure.
 
+    Arguments:
+    ----------
     fig : matplotlib.figure.Figure
     color_deficit : {"d", "p", "t"}, optional
         type of colorblindness, d for deuteronopia (default),
