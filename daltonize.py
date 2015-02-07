@@ -309,7 +309,22 @@ def set_mpl_colors(mpl_colors, rgba):
     for key in mpl_colors.keys():
         i = set_colors_from_array(key, mpl_colors[key], rgba, i)
 
-        
+
+def _prepare_call_sim(fig, color_deficit):
+    mpl_colors = get_mpl_colors(fig)
+    rgb, alpha = arrays_from_dict(mpl_colors)
+    sim_rgb = simulate(array_to_img(rgb * 255), color_deficit) / 255
+    return sim_rgb, rgb, alpha, mpl_colors
+
+
+def _join_rgb_alpha(rgb, alpha):
+    rgb = clip_arrary(rgb, 0, 1)
+    r, g, b = np.split(rgb, 3, 2)
+    rgba = np.concatenate((r, g, b, alpha.reshape(alpha.size, 1, 1)),
+                          axis=2).reshape(-1, 4)
+    return rgba
+
+
 def simulate_mpl(fig, color_deficit='d', copy=False):
     """
     fig : matplotlib.figure.Figure
@@ -331,14 +346,8 @@ def simulate_mpl(fig, color_deficit='d', copy=False):
         # Turns out PolarAffine cannot be unpickled ...
         pfig = pickle.dumps(fig)
         fig = pickle.loads(pfig)
-    mpl_colors = get_mpl_colors(fig)
-    rgb, alpha = arrays_from_dict(mpl_colors)
-    sim_rgb = simulate(array_to_img(rgb * 255), color_deficit) / 255
-    # clip values to lie in the range [0, 1]
-    sim_rgb = clip_arrary(sim_rgb, 0, 1)
-    r, g, b = np.split(sim_rgb, 3, 2)
-    rgba = np.concatenate((r, g, b, alpha.reshape(alpha.size, 1, 1)),
-                           axis=2).reshape(-1, 4)
+    sim_rgb, rgb, alpha, mpl_colors = _prepare_call_sim(fig, color_deficit)
+    rgba = _join_rgb_alpha(sim_rgb, alpha)
     set_mpl_colors(mpl_colors, rgba)
     fig.canvas.draw()
     return fig
@@ -365,14 +374,9 @@ def daltonize_mpl(fig, color_deficit='d', copy=False):
         # Turns out PolarAffine cannot be unpickled ...
         pfig = pickle.dumps(fig)
         fig = pickle.loads(pfig)
-    mpl_colors = get_mpl_colors(fig)
-    rgb, alpha = arrays_from_dict(mpl_colors)
-    sim_rgb = simulate(array_to_img(rgb * 255), color_deficit) / 255
+    sim_rgb, rgb, alpha, mpl_colors = _prepare_call_sim(fig, color_deficit)
     dtpn = daltonize(rgb, sim_rgb)
-    dtpn = clip_arrary(dtpn, 0, 1) 
-    r, g, b = np.split(dtpn, 3, 2)
-    rgba = np.concatenate((r, g, b, alpha.reshape(alpha.size, 1, 1)),
-                           axis=2).reshape(-1, 4)
+    rgba = _join_rgb_alpha(dtpn, alpha)
     set_mpl_colors(mpl_colors, rgba)
     fig.canvas.draw()
     return fig
