@@ -128,13 +128,32 @@ def array_to_img(arr):
         RGB image created from array
     """
     # clip values to lie in the range [0, 255]
-    comp_arr1 = np.zeros_like(arr)
-    comp_arr2 = np.ones_like(arr) * 255
-    arr = np.maximum(comp_arr1, arr)
-    arr = np.minimum(comp_arr2, arr)
+    arr = clip_arrary(arr)
     arr = arr.astype('uint8')
     img = Image.fromarray(arr, mode='RGB')
     return img
+
+
+def clip_arrary(arr, min_value=0, max_value=255):
+    """Ensure that all values in an array are between min and max values.
+
+    Arguments:
+    ----------
+    arr : array_like
+    min_value : float, optional
+        default 0
+    max_value : float, optional
+        default 255
+
+    Returns:
+    --------
+    arr : array_like
+        clipped such that all values are min_value <= arr <= max_value
+    """
+    comp_arr = np.ones_like(arr)
+    arr = np.maximum(comp_arr * min_value, arr)
+    arr = np.minimum(comp_arr * max_value, arr)
+    return arr
 
 
 def get_child_colors(child, mpl_colors):
@@ -316,11 +335,7 @@ def simulate_mpl(fig, color_deficit='d', copy=False):
     rgb, alpha = arrays_from_dict(mpl_colors)
     sim_rgb = simulate(array_to_img(rgb * 255), color_deficit) / 255
     # clip values to lie in the range [0, 1]
-    comp_arr1 = np.zeros_like(sim_rgb)
-    comp_arr2 = np.ones_like(sim_rgb)
-    sim_rgb = np.maximum(comp_arr1, sim_rgb)
-    sim_rgb = np.minimum(comp_arr2, sim_rgb)
-
+    sim_rgb = clip_arrary(sim_rgb, 0, 1)
     r, g, b = np.split(sim_rgb, 3, 2)
     rgba = np.concatenate((r, g, b, alpha.reshape(alpha.size, 1, 1)),
                            axis=2).reshape(-1, 4)
@@ -328,6 +343,40 @@ def simulate_mpl(fig, color_deficit='d', copy=False):
     fig.canvas.draw()
     return fig
     
+
+def daltonize_mpl(fig, color_deficit='d', copy=False):
+    """
+    fig : matplotlib.figure.Figure
+    color_deficit : {"d", "p", "t"}, optional
+        type of colorblindness, d for deuteronopia (default),
+        p for protonapia,
+        t for tritanopia
+    copy : bool, optional
+        should simulation happen on a copy (True) or the original 
+        (False, default)
+
+    Returns:
+    --------
+    fig : matplotlib.figure.Figure
+    """
+    if copy:
+        # mpl.transforms cannot be copy.deepcopy()ed. Thus we resort
+        # to pickling.
+        # Turns out PolarAffine cannot be unpickled ...
+        pfig = pickle.dumps(fig)
+        fig = pickle.loads(pfig)
+    mpl_colors = get_mpl_colors(fig)
+    rgb, alpha = arrays_from_dict(mpl_colors)
+    sim_rgb = simulate(array_to_img(rgb * 255), color_deficit) / 255
+    dtpn = daltonize(rgb, sim_rgb)
+    dtpn = clip_arrary(dtpn, 0, 1) 
+    r, g, b = np.split(dtpn, 3, 2)
+    rgba = np.concatenate((r, g, b, alpha.reshape(alpha.size, 1, 1)),
+                           axis=2).reshape(-1, 4)
+    set_mpl_colors(mpl_colors, rgba)
+    fig.canvas.draw()
+    return fig
+   
     
 if __name__ == '__main__':
     import argparse
