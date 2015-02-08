@@ -1,25 +1,41 @@
 # Daltonize
 
-Daltonize simulates the three types of dichromatic color
-blindness. Generalizing and omitting a lot of details these are:
+Daltonize simulates the three types of dichromatic color blindness and
+images and matplotlib figures. Generalizing and omitting a lot of
+details these types are:
 
 * Deuteranopia: green weakness
 * Protanopia: red weakness
 * Tritanopia: blue weakness (extremely rare)
 
 Daltonize can also adjust the color palette of an input image such
-that a color blind person can perceive the full information content.
+that a color blind person can perceive the full information
+content. It can be used as a command line tool to convert pixel images
+but also as a Python module. If used as the latter, it provides an API
+to simulate and correct for color blindness in matplotlib figures.
+
+This allows to create color blind friendly vector graphics suitable
+for publication.
 
 ## Installation
 
 $ git clone git@github.com:joergdietrich/daltonize.git
 
-and copy daltonize.py to a location in your $PATH. Daltonize depends
+and copy daltonize.py to a location in your $PATH and/or
+$PYTHONPATH. Daltonize depends
 
 * Pillow: https://python-pillow.github.io/
 * numpy: http://www.numpy.org/
 
+and
+
+* matplotlib: http://matplotlib.org/
+
+if it is used to work on matplotlib figure objects.
+
 ## Usage
+
+As a command line tool:
 
 ```
 $ daltonize.py -h
@@ -36,6 +52,18 @@ optional arguments:
   -t {d,p,t}, --type {d,p,t}
                         type of color blindness (deuteranopia, protanopia,
                         tritanopia), default is deuteranopia (most common)
+```
+
+As a Python module:
+
+```
+In [1]: import daltonize
+
+[ Create a figure ]
+
+In [10]: sim_fig = daltonize.simulate_mpl(fig, copy=True)
+
+In [11]: daltonized_fig = daltonize.daltonize_mpl(fig, copy=True)
 ```
 
 ## Credits
