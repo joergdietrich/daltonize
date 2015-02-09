@@ -171,8 +171,6 @@ def get_child_colors(child, mpl_colors):
     mpl_colors : OrderedDict
     """
     mpl_colors[child] = OrderedDict()
-    # does not deal with cmaps yet, only with lines, patches,
-    # etc. (vector like stuff)
     if hasattr(child, "get_color"):
         mpl_colors[child]['color'] = child.get_color()
     if hasattr(child, "get_facecolor"):
