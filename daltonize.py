@@ -234,7 +234,7 @@ def get_key_colors(mpl_colors, rgb, alpha):
                 continue
             if isinstance(color, mpl.colors.LinearSegmentedColormap):
                 rgba = color(np.arange(color.N))
-            elif isinstance(color, np.ndarray):
+            elif isinstance(color, np.ndarray) and color_key == "array":
                 color = color.reshape(-1, 3) / 255.
                 a = np.zeros((color.shape[0], 1))
                 rgba = np.hstack((color, a))
@@ -288,7 +288,7 @@ def _set_colors_from_array(instance, mpl_colors, rgba, i=0):
             color = mpl_colors[color_key]
             if isinstance(color, mpl.colors.LinearSegmentedColormap):
                 j = color.N
-            elif isinstance(color, np.ndarray):
+            elif isinstance(color, np.ndarray) and color_key == "array":
                 j = color.shape[0] * color.shape[1]
             else:
                 # skip unset colors, otherwise they are turned into black.
