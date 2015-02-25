@@ -235,7 +235,7 @@ def get_key_colors(mpl_colors, rgb, alpha):
             if isinstance(color, mpl.colors.LinearSegmentedColormap):
                 rgba = color(np.arange(color.N))
             elif isinstance(color, np.ndarray) and color_key == "array":
-                color = color.reshape(-1, 3) / 255.
+                color = color.reshape(-1, 3) / 255
                 a = np.zeros((color.shape[0], 1))
                 rgba = np.hstack((color, a))
             else:
