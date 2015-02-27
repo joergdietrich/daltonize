@@ -185,6 +185,13 @@ def get_child_colors(child, mpl_colors):
         mpl_colors[child]['mfcalt'] = child.get_markerfacecoloralt()
     if isinstance(child, mpl.image.AxesImage):
         mpl_colors[child]['cmap'] = child.get_cmap()
+        img_properties = child.properties()
+        try:
+            img_arr = img_properties['array']
+            if len(img_arr.shape) == 3:
+                mpl_colors[child]['array'] = np.array(img_arr)
+        except KeyError:
+            pass
     if hasattr(child, "get_children"):
         grandchildren = child.get_children()
         for grandchild in grandchildren:
@@ -218,7 +225,7 @@ def get_key_colors(mpl_colors, rgb, alpha):
     cc = mpl.colors.ColorConverter()
     # Note that the order must match the insertion order in
     # get_child_colors()
-    color_keys = ("color", "fc", "ec", "mec", "mfc", "mfcalt", "cmap")
+    color_keys = ("color", "fc", "ec", "mec", "mfc", "mfcalt", "cmap", "array")
     for color_key in color_keys:
         try:
             color = mpl_colors[color_key]
@@ -227,6 +234,10 @@ def get_key_colors(mpl_colors, rgb, alpha):
                 continue
             if isinstance(color, mpl.colors.LinearSegmentedColormap):
                 rgba = color(np.arange(color.N))
+            elif isinstance(color, np.ndarray) and color_key == "array":
+                color = color.reshape(-1, 3) / 255
+                a = np.zeros((color.shape[0], 1))
+                rgba = np.hstack((color, a))
             else:
                 rgba = cc.to_rgba_array(color)
             rgb = np.append(rgb, rgba[:, :3])
@@ -271,12 +282,14 @@ def _set_colors_from_array(instance, mpl_colors, rgba, i=0):
     cc = mpl.colors.ColorConverter()
     # Note that the order must match the insertion order in
     # get_child_colors()
-    color_keys = ("color", "fc", "ec", "mec", "mfc", "mfcalt", "cmap")
+    color_keys = ("color", "fc", "ec", "mec", "mfc", "mfcalt", "cmap", "array")
     for color_key in color_keys:
         try:
             color = mpl_colors[color_key]
             if isinstance(color, mpl.colors.LinearSegmentedColormap):
                 j = color.N
+            elif isinstance(color, np.ndarray) and color_key == "array":
+                j = color.shape[0] * color.shape[1]
             else:
                 # skip unset colors, otherwise they are turned into black.
                 if color == 'none':
@@ -303,6 +316,12 @@ def _set_colors_from_array(instance, mpl_colors, rgba, i=0):
                 instance.set_cmap(
                     instance.cmap.from_list(instance.cmap.name+"_dlt",
                                             target_color))
+            elif color_key == "array":
+                target_color = (target_color.reshape((color.shape[0],
+                                                      color.shape[1],
+                                                      -1)))
+                target_color = (target_color[:, :, :3] * 255).astype('uint8')
+                instance.set_data(target_color)
         except KeyError:
             pass
     return i
