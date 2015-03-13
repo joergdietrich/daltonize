@@ -9,7 +9,6 @@
 from __future__ import print_function, division
 
 from collections import OrderedDict
-import os
 try:
     import pickle
 except ImportError:
@@ -72,9 +71,9 @@ def simulate(img, color_deficit="d", return_original_rgb=False):
                         [3.45565, 27.1554, 3.86714],
                         [0.0299566, 0.184309, 1.46709]])
     # Precomputed inverse
-    lms2rgb = np.array([[8.09444479e-02, -1.30504409e-01,  1.16721066e-01],
-                        [-1.02485335e-02,  5.40193266e-02, -1.13614708e-01],
-                        [-3.65296938e-04, -4.12161469e-03,  6.93511405e-01]])
+    lms2rgb = np.array([[8.09444479e-02, -1.30504409e-01, 1.16721066e-01],
+                        [-1.02485335e-02, 5.40193266e-02, -1.13614708e-01],
+                        [-3.65296938e-04, -4.12161469e-03, 6.93511405e-01]])
 
     img = img.copy()
     img = img.convert('RGB')
@@ -426,7 +425,6 @@ def daltonize_mpl(fig, color_deficit='d', copy=False):
 
 if __name__ == '__main__':
     import argparse
-    import sys
 
     parser = argparse.ArgumentParser()
     parser.add_argument("input_image", type=str)
