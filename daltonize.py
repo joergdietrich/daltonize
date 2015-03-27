@@ -55,9 +55,6 @@ def simulate(img, color_deficit="d"):
     --------
     sim_rgb : array of shape (M, N, 3)
         simulated image in RGB format
-    rgb : array of shape (M, N, 3)
-        original image in RGB format. Returned only if return_original_rgb is
-        True
     """
     # Colorspace transformation matrices
     cb_matrices = {
