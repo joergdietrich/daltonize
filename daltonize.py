@@ -55,9 +55,6 @@ def simulate(img, color_deficit="d"):
     --------
     sim_rgb : array of shape (M, N, 3)
         simulated image in RGB format
-    rgb : array of shape (M, N, 3)
-        original image in RGB format. Returned only if return_original_rgb is
-        True
     """
     # Colorspace transformation matrices
     cb_matrices = {
@@ -364,15 +361,14 @@ def set_mpl_colors(mpl_colors, rgba):
         i = _set_colors_from_array(key, mpl_colors[key], rgba, i)
 
 
-def _prepare_and_call_sim(fig, color_deficit):
+def _prepare_for_transform(fig):
     """
     Gather color keys/info for mpl figure and arange them such that the image
-    simulate() routine can be called on them.
+    simulate() or daltonize() routines can be called on them.
     """
     mpl_colors = get_mpl_colors(fig)
     rgb, alpha = arrays_from_dict(mpl_colors)
-    sim_rgb = simulate(array_to_img(rgb * 255), color_deficit) / 255
-    return sim_rgb, rgb, alpha, mpl_colors
+    return rgb, alpha, mpl_colors
 
 
 def _join_rgb_alpha(rgb, alpha):
@@ -410,7 +406,8 @@ def simulate_mpl(fig, color_deficit='d', copy=False):
         # to pickling.
         pfig = pickle.dumps(fig)
         fig = pickle.loads(pfig)
-    sim_rgb, _, alpha, mpl_colors = _prepare_and_call_sim(fig, color_deficit)
+    rgb, alpha, mpl_colors = _prepare_for_transform(fig)
+    sim_rgb = simulate(array_to_img(rgb * 255), color_deficit) / 255
     rgba = _join_rgb_alpha(sim_rgb, alpha)
     set_mpl_colors(mpl_colors, rgba)
     fig.canvas.draw()
@@ -441,8 +438,8 @@ def daltonize_mpl(fig, color_deficit='d', copy=False):
         # to pickling.
         pfig = pickle.dumps(fig)
         fig = pickle.loads(pfig)
-    sim_rgb, rgb, alpha, mpl_colors = _prepare_and_call_sim(fig, color_deficit)
-    dtpn = daltonize(rgb, sim_rgb)
+    rgb, alpha, mpl_colors = _prepare_for_transform(fig)
+    dtpn = daltonize(array_to_img(rgb * 255), color_deficit) / 255
     rgba = _join_rgb_alpha(dtpn, alpha)
     set_mpl_colors(mpl_colors, rgba)
     fig.canvas.draw()
