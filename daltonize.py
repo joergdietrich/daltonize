@@ -18,9 +18,9 @@ from PIL import Image
 import numpy as np
 try:
     import matplotlib as mpl
-    _no_mpl = False
+    _NO_MPL = False
 except ImportError:
-    _no_mpl = True
+    _NO_MPL = True
 
 
 def transform_colorspace(img, mat):
@@ -40,7 +40,7 @@ def transform_colorspace(img, mat):
     return np.einsum("ij, ...j", mat, img)
 
 
-def simulate(img, color_deficit="d", return_original_rgb=False):
+def simulate(img, color_deficit="d"):
     """Simulate the effect of color blindness on an image.
 
     Arguments:
@@ -50,8 +50,6 @@ def simulate(img, color_deficit="d", return_original_rgb=False):
         type of colorblindness, d for deuteronopia (default),
         p for protonapia,
         t for tritanopia
-    return_original_rgb : bool, optional
-        Return the original image as rgb if True, default False
 
     Returns:
     --------
@@ -85,12 +83,10 @@ def simulate(img, color_deficit="d", return_original_rgb=False):
     sim_lms = transform_colorspace(lms, cb_matrices[color_deficit])
     # Transform back to RBG
     sim_rgb = transform_colorspace(sim_lms, lms2rgb)
-    if return_original_rgb:
-        return sim_rgb, rgb
     return sim_rgb
 
 
-def daltonize(rgb, sim_rgb):
+def daltonize(rgb, color_deficit='d'):
     """
     Adjust color palette of an image to compensate color blindness.
 
@@ -98,13 +94,17 @@ def daltonize(rgb, sim_rgb):
     ----------
     rgb : array of shape (M, N, 3)
         original image in RGB format
-    sim_rgb : array of shape (M, N, 3)
-        image with simulated color blindness
+    color_deficit : {"d", "p", "t"}, optional
+        type of colorblindness, d for deuteronopia (default),
+        p for protonapia,
+        t for tritanopia
 
     Returns:
+    --------
     dtpn : array of shape (M, N, 3)
         image in RGB format with colors adjusted
     """
+    sim_rgb = simulate(rgb, color_deficit)
     err2mod = np.array([[0, 0, 0], [0.7, 1, 0], [0.7, 0, 1]])
     # rgb - sim_rgb contains the color information that dichromats
     # cannot see. err2mod rotates this to a part of the spectrum that
@@ -218,7 +218,7 @@ def get_mpl_colors(fig):
 
 
 def get_key_colors(mpl_colors, rgb, alpha):
-    if _no_mpl is True:
+    if _NO_MPL is True:
         raise ImportError("matplotlib not found, "
                           "can only deal with pixel images")
     cc = mpl.colors.ColorConverter() # pylint: disable=invalid-name
@@ -277,7 +277,7 @@ def arrays_from_dict(mpl_colors):
     return rgb, alpha
 
 
-def _set_colors_from_array(instance, mpl_colors, rgba, i=0):
+def _set_colors_from_array(instance, mpl_colors, rgba, i=0): #pylint: disable=missing-docstring
     cc = mpl.colors.ColorConverter() # pylint: disable=invalid-name
     # Note that the order must match the insertion order in
     # get_child_colors()
@@ -343,7 +343,7 @@ def set_mpl_colors(mpl_colors, rgba):
         i = _set_colors_from_array(key, mpl_colors[key], rgba, i)
 
 
-def _prepare_call_sim(fig, color_deficit):
+def _prepare_call_sim(fig, color_deficit): # pylint: disable=missing-docstring
     mpl_colors = get_mpl_colors(fig)
     rgb, alpha = arrays_from_dict(mpl_colors)
     sim_rgb = simulate(array_to_img(rgb * 255), color_deficit) / 255
@@ -351,6 +351,9 @@ def _prepare_call_sim(fig, color_deficit):
 
 
 def _join_rgb_alpha(rgb, alpha):
+    """
+    Combine (m, n, 3) rgb and (m, n) alpha array into (m, n, 4) rgba.
+    """
     rgb = clip_array(rgb, 0, 1)
     r, g, b = np.split(rgb, 3, 2) # pylint: disable=invalid-name, unbalanced-tuple-unpacking
     rgba = np.concatenate((r, g, b, alpha.reshape(alpha.size, 1, 1)),
@@ -449,11 +452,12 @@ if __name__ == '__main__':
         args.type = "d"
 
     orig_img = Image.open(args.input_image)
-    sim_rgb, rgb = simulate(orig_img, args.type, return_original_rgb=True)
+
     if args.simulate:
-        sim_img = array_to_img(sim_rgb)
-        sim_img.save(args.output_image)
+        simul_rgb = simulate(orig_img, args.type)
+        simul_img = array_to_img(simul_rgb)
+        simul_img.save(args.output_image)
     if args.daltonize:
-        dalton_rgb = daltonize(rgb, sim_rgb)
+        dalton_rgb = daltonize(orig_img, args.type)
         dalton_img = array_to_img(dalton_rgb)
         dalton_img.save(args.output_image)
