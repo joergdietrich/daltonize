@@ -12,7 +12,7 @@ from collections import OrderedDict
 try:
     import pickle
 except ImportError:
-    import cPickle as pickle
+    import cPickle as pickle # pylint: disable=import-error
 
 from PIL import Image
 import numpy as np
