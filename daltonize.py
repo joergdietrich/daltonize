@@ -218,6 +218,24 @@ def get_mpl_colors(fig):
 
 
 def get_key_colors(mpl_colors, rgb, alpha):
+    """From an OrderedDict of colors of all figure object children
+    recursively fill rgb and alpha channel information.
+
+    Arguments:
+    ----------
+    mpl_colors : OrderedDict
+        dictionary with all colors of all children, matplotlib instances are
+        keys
+    rgb : array of shape (M, 1, 3)
+        line image holding RGB colors encountered so far.
+    alpha : array of shape (M, 1)
+        line image holding alpha values encountered so far.
+
+    Returns:
+    --------
+    rgb : array of shape (M+n, 1, 3)
+    alpha : array of shape (M+n, 1)
+    """
     if _NO_MPL is True:
         raise ImportError("matplotlib not found, "
                           "can only deal with pixel images")
@@ -277,7 +295,10 @@ def arrays_from_dict(mpl_colors):
     return rgb, alpha
 
 
-def _set_colors_from_array(instance, mpl_colors, rgba, i=0): #pylint: disable=missing-docstring
+def _set_colors_from_array(instance, mpl_colors, rgba, i=0):
+    """
+    Set object instance colors to the modified ones in rgba.
+    """
     cc = mpl.colors.ColorConverter() # pylint: disable=invalid-name
     # Note that the order must match the insertion order in
     # get_child_colors()
@@ -343,7 +364,11 @@ def set_mpl_colors(mpl_colors, rgba):
         i = _set_colors_from_array(key, mpl_colors[key], rgba, i)
 
 
-def _prepare_and_call_sim(fig, color_deficit): # pylint: disable=missing-docstring
+def _prepare_and_call_sim(fig, color_deficit):
+    """
+    Gather color keys/info for mpl figure and arange them such that the image
+    simulate() routine can be called on them.
+    """
     mpl_colors = get_mpl_colors(fig)
     rgb, alpha = arrays_from_dict(mpl_colors)
     sim_rgb = simulate(array_to_img(rgb * 255), color_deficit) / 255
