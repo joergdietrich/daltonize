@@ -12,7 +12,7 @@ from collections import OrderedDict
 try:
     import pickle
 except ImportError:
-    import cPickle as pickle # pylint: disable=import-error
+    import cPickle as pickle  # pylint: disable=import-error
 
 from PIL import Image
 import numpy as np
@@ -239,7 +239,7 @@ def get_key_colors(mpl_colors, rgb, alpha):
     if _NO_MPL is True:
         raise ImportError("matplotlib not found, "
                           "can only deal with pixel images")
-    cc = mpl.colors.ColorConverter() # pylint: disable=invalid-name
+    cc = mpl.colors.ColorConverter()  # pylint: disable=invalid-name
     # Note that the order must match the insertion order in
     # get_child_colors()
     color_keys = ("color", "fc", "ec", "mec", "mfc", "mfcalt", "cmap", "array")
@@ -253,7 +253,7 @@ def get_key_colors(mpl_colors, rgb, alpha):
                 rgba = color(np.arange(color.N))
             elif isinstance(color, np.ndarray) and color_key == "array":
                 color = color.reshape(-1, 3) / 255
-                a = np.zeros((color.shape[0], 1)) # pylint: disable=invalid-name
+                a = np.zeros((color.shape[0], 1))  # pylint: disable=invalid-name
                 rgba = np.hstack((color, a))
             else:
                 rgba = cc.to_rgba_array(color)
@@ -290,7 +290,7 @@ def arrays_from_dict(mpl_colors):
     alpha = np.array([])
     for key in mpl_colors.keys():
         rgb, alpha = get_key_colors(mpl_colors[key], rgb, alpha)
-    m = rgb.size / 3 # pylint: disable=invalid-name
+    m = rgb.size / 3  # pylint: disable=invalid-name
     rgb = rgb.reshape((m, 1, 3))
     return rgb, alpha
 
@@ -299,7 +299,7 @@ def _set_colors_from_array(instance, mpl_colors, rgba, i=0):
     """
     Set object instance colors to the modified ones in rgba.
     """
-    cc = mpl.colors.ColorConverter() # pylint: disable=invalid-name
+    cc = mpl.colors.ColorConverter()  # pylint: disable=invalid-name
     # Note that the order must match the insertion order in
     # get_child_colors()
     color_keys = ("color", "fc", "ec", "mec", "mfc", "mfcalt", "cmap", "array")
@@ -380,7 +380,7 @@ def _join_rgb_alpha(rgb, alpha):
     Combine (m, n, 3) rgb and (m, n) alpha array into (m, n, 4) rgba.
     """
     rgb = clip_array(rgb, 0, 1)
-    r, g, b = np.split(rgb, 3, 2) # pylint: disable=invalid-name, unbalanced-tuple-unpacking
+    r, g, b = np.split(rgb, 3, 2)  # pylint: disable=invalid-name, unbalanced-tuple-unpacking
     rgba = np.concatenate((r, g, b, alpha.reshape(alpha.size, 1, 1)),
                           axis=2).reshape(-1, 4)
     return rgba
