@@ -439,7 +439,7 @@ def daltonize_mpl(fig, color_deficit='d', copy=False):
         pfig = pickle.dumps(fig)
         fig = pickle.loads(pfig)
     sim_rgb, rgb, alpha, mpl_colors = _prepare_and_call_sim(fig, color_deficit)
-    dtpn = daltonize(rgb, sim_rgb)
+    dtpn = daltonize(array_to_img(rgb * 255), color_deficit) / 255
     rgba = _join_rgb_alpha(dtpn, alpha)
     set_mpl_colors(mpl_colors, rgba)
     fig.canvas.draw()
