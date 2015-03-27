@@ -343,7 +343,7 @@ def set_mpl_colors(mpl_colors, rgba):
         i = _set_colors_from_array(key, mpl_colors[key], rgba, i)
 
 
-def _prepare_call_sim(fig, color_deficit): # pylint: disable=missing-docstring
+def _prepare_and_call_sim(fig, color_deficit): # pylint: disable=missing-docstring
     mpl_colors = get_mpl_colors(fig)
     rgb, alpha = arrays_from_dict(mpl_colors)
     sim_rgb = simulate(array_to_img(rgb * 255), color_deficit) / 255
@@ -383,10 +383,9 @@ def simulate_mpl(fig, color_deficit='d', copy=False):
     if copy:
         # mpl.transforms cannot be copy.deepcopy()ed. Thus we resort
         # to pickling.
-        # Turns out PolarAffine cannot be unpickled ...
         pfig = pickle.dumps(fig)
         fig = pickle.loads(pfig)
-    sim_rgb, _, alpha, mpl_colors = _prepare_call_sim(fig, color_deficit)
+    sim_rgb, _, alpha, mpl_colors = _prepare_and_call_sim(fig, color_deficit)
     rgba = _join_rgb_alpha(sim_rgb, alpha)
     set_mpl_colors(mpl_colors, rgba)
     fig.canvas.draw()
@@ -415,10 +414,9 @@ def daltonize_mpl(fig, color_deficit='d', copy=False):
     if copy:
         # mpl.transforms cannot be copy.deepcopy()ed. Thus we resort
         # to pickling.
-        # Turns out PolarAffine cannot be unpickled ...
         pfig = pickle.dumps(fig)
         fig = pickle.loads(pfig)
-    sim_rgb, rgb, alpha, mpl_colors = _prepare_call_sim(fig, color_deficit)
+    sim_rgb, rgb, alpha, mpl_colors = _prepare_and_call_sim(fig, color_deficit)
     dtpn = daltonize(rgb, sim_rgb)
     rgba = _join_rgb_alpha(dtpn, alpha)
     set_mpl_colors(mpl_colors, rgba)
