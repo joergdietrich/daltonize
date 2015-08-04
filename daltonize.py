@@ -106,6 +106,7 @@ def daltonize(rgb, color_deficit='d'):
     # rgb - sim_rgb contains the color information that dichromats
     # cannot see. err2mod rotates this to a part of the spectrum that
     # they can see.
+    rgb = rgb.convert('RGB')
     err = transform_colorspace(rgb - sim_rgb, err2mod)
     dtpn = err + rgb
     return dtpn
