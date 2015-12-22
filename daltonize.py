@@ -13,9 +13,12 @@ try:
     import pickle
 except ImportError:
     import cPickle as pickle  # pylint: disable=import-error
+from pkg_resources import parse_version
 
 from PIL import Image
 import numpy as np
+assert parse_version(np.__version__) >= parse_version('1.9.0'), \
+    "numpy >= 1.9.0 is required for daltonize"
 try:
     import matplotlib as mpl
     _NO_MPL = False
