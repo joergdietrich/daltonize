@@ -291,7 +291,7 @@ def arrays_from_dict(mpl_colors):
     alpha = np.array([])
     for key in mpl_colors.keys():
         rgb, alpha = get_key_colors(mpl_colors[key], rgb, alpha)
-    m = rgb.size / 3  # pylint: disable=invalid-name
+    m = rgb.size // 3  # pylint: disable=invalid-name
     rgb = rgb.reshape((m, 1, 3))
     return rgb, alpha
 
