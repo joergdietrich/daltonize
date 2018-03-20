@@ -248,7 +248,7 @@ def get_key_colors(mpl_colors, rgb, alpha):
         try:
             color = mpl_colors[color_key]
             # skip unset colors, otherwise they are turned into black.
-            if color == 'none':
+            if isinstance(color, str) and color == 'none':
                 continue
             if isinstance(color, mpl.colors.LinearSegmentedColormap):
                 rgba = color(np.arange(color.N))
@@ -313,11 +313,11 @@ def _set_colors_from_array(instance, mpl_colors, rgba, i=0):
                 j = color.shape[0] * color.shape[1]
             else:
                 # skip unset colors, otherwise they are turned into black.
-                if color == 'none':
+                if isinstance(color, str) and color == 'none':
                     continue
                 color_shape = cc.to_rgba_array(color).shape
                 j = color_shape[0]
-            target_color = rgba[i:i+j, :]
+            target_color = rgba[i: i + j, :]
             if j == 1:
                 target_color = target_color[0]
             i += j
