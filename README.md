@@ -19,17 +19,27 @@ for publication.
 
 ## Installation
 
-$ git clone git@github.com:joergdietrich/daltonize.git
+```
+git clone git@github.com:joergdietrich/daltonize.git
+```
 
-and copy daltonize.py to a location in your $PATH and/or
-$PYTHONPATH. Daltonize depends
+and copy `daltonize.py` to a location in your `$PATH` and/or
+`$PYTHONPATH`. Daltonize depends
 
 * Pillow: https://python-pillow.github.io/
 * numpy: http://www.numpy.org/
 
+```
+pip install numpy Pillow
+```
+
 and
 
 * matplotlib: http://matplotlib.org/
+
+```
+pip install matplotlib
+```
 
 if it is used to work on matplotlib figure objects.
 
@@ -95,6 +105,26 @@ blindness see on these plates:
 
 You can verify the r/g deficiency column by running daltonize.py with
 the `-s/--simulate` option and `-t/--type d` or `p` on these images.
+
+### Normal
+
+![IshiharaPlate3](example_images/Ishihara_Plate_3.jpg)
+
+### Deuteranopia
+
+```
+python daltonize.py -s -t=d example_images/Ishihara_Plate_3.jpg example_images/Ishihara_Plate_3-Deuteranopia.jpg
+```
+
+![IshiharaPlate3](example_images/Ishihara_Plate_3-Deuteranopia.jpg)
+
+### Protanopia
+
+```
+python daltonize.py -s -t=p example_images/Ishihara_Plate_3.jpg example_images/Ishihara_Plate_3-Protanopia.jpg
+```
+
+![IshiharaPlate3](example_images/Ishihara_Plate_3-Protanopia.jpg)
 
 ## License
 
