@@ -6,13 +6,8 @@
    This code is licensed under the GNU GPL version 2, see COPYING for details.
 """
 
-from __future__ import print_function, division
-
 from collections import OrderedDict
-try:
-    import pickle
-except ImportError:
-    import cPickle as pickle  # pylint: disable=import-error
+import pickle
 from pkg_resources import parse_version
 import warnings
 
