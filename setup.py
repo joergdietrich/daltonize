@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="daltonize", # Replace with your own username
-    version="0.1.0",
+    version="0.1.0-dev",
     author="Jörg Dietrich",
     author_email="joerg@joergdietrich.com",
     description="simulate and correct for color blindness in matplotlib figures and images",
@@ -27,4 +27,12 @@ setuptools.setup(
     extras_require={
         'dev': ['pytest'],
     },
+
+    # To provide executable scripts, use entry points in preference to the
+    # "scripts" keyword. Entry points provide cross-platform support and allow
+    # pip to create the appropriate form of executable for the target
+    # platform.
+    entry_points={
+        'console_scripts': ['daltonize=daltonize.daltonize:main'],
+        },
 )

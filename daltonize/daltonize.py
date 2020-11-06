@@ -481,9 +481,9 @@ def inverse_gamma_correction(linear_rgb, gamma=2.4):
         rgb *= 255 / max_value
     return np.round(rgb)
 
-if __name__ == '__main__':
-    import argparse
 
+def main():
+    import argparse
     # pylint: disable=invalid-name
     parser = argparse.ArgumentParser()
     parser.add_argument("input_image", type=str)
@@ -496,8 +496,8 @@ if __name__ == '__main__':
                        action="store_true")
     parser.add_argument("-t", "--type", type=str, choices=["d", "p", "t"],
                         help="type of color blindness (deuteranopia, "
-                        "protanopia, tritanopia), default is deuteranopia "
-                        "(most common)")
+                             "protanopia, tritanopia), default is deuteranopia "
+                             "(most common)")
     parser.add_argument("-g", "--gamma", type=float, default=2.4,
                         help="value of gamma correction to be applied before transformation. The default "
                              "applies the standard sRGB correction with an exponent of 2.4"
@@ -521,3 +521,7 @@ if __name__ == '__main__':
         dalton_rgb = daltonize(orig_img, args.type)
         dalton_img = array_to_img(dalton_rgb, args.gamma)
         dalton_img.save(args.output_image)
+
+
+if __name__ == '__main__':
+    main()
