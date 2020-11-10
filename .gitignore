@@ -1,2 +1,8 @@
 *~
 *.pyc
+build
+dist
+.idea
+/daltonize.egg-info/
+.ipynb_checkpoints/
+doc/colourmaps.pdf
