@@ -20,28 +20,8 @@ for publication.
 ## Installation
 
 ```
-git clone git@github.com:joergdietrich/daltonize.git
+pip install daltonize
 ```
-
-and copy `daltonize.py` to a location in your `$PATH` and/or
-`$PYTHONPATH`. Daltonize depends
-
-* Pillow: https://python-pillow.github.io/
-* numpy: http://www.numpy.org/
-
-```
-pip install numpy Pillow
-```
-
-and
-
-* matplotlib: http://matplotlib.org/
-
-```
-pip install matplotlib
-```
-
-if it is used to work on matplotlib figure objects.
 
 ## Usage
 
@@ -49,7 +29,7 @@ As a command line tool:
 
 ```
 $ daltonize.py -h
-usage: daltonize.py [-h] [-s | -d] [-t {d,p,t}] input_image output_image
+usage: daltonize.py [-h] [-s | -d] [-t {d,p,t}] [-g {2.4}] input_image output_image
 
 positional arguments:
   input_image
@@ -62,6 +42,8 @@ optional arguments:
   -t {d,p,t}, --type {d,p,t}
                         type of color blindness (deuteranopia, protanopia,
                         tritanopia), default is deuteranopia (most common)
+  -g --gamma {2.4}      exponent of the sRGB gamma correction. The default 
+                        2.4 corresponds to an effective exponent of 2.2
 ```
 
 As a Python module:
