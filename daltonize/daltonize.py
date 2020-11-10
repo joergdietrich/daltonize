@@ -36,7 +36,7 @@ def transform_colorspace(img, mat):
     out : array of shape (M, N, 3)
     """
     # Fast element (=pixel) wise matrix multiplication
-    return np.einsum("ij, ...j", mat, img)
+    return np.einsum("ij, ...j", mat, img, dtype=np.float16, casting="same_kind")
 
 
 def simulate(rgb, color_deficit="d"):
@@ -58,17 +58,17 @@ def simulate(rgb, color_deficit="d"):
     """
     # Colorspace transformation matrices
     cb_matrices = {
-        "d": np.array([[1, 0, 0], [1.10104433,  0, -0.00901975], [0, 0, 1]]),
-        "p": np.array([[0, 0.90822864, 0.008192], [0, 1, 0], [0, 0, 1]]),
-        "t": np.array([[1, 0, 0], [0, 1, 0], [-0.15773032,  1.19465634, 0]]),
+        "d": np.array([[1, 0, 0], [1.10104433,  0, -0.00901975], [0, 0, 1]], dtype=np.float16),
+        "p": np.array([[0, 0.90822864, 0.008192], [0, 1, 0], [0, 0, 1]], dtype=np.float16),
+        "t": np.array([[1, 0, 0], [0, 1, 0], [-0.15773032,  1.19465634, 0]], dtype=np.float16),
     }
     rgb2lms = np.array([[0.3904725 , 0.54990437, 0.00890159],
        [0.07092586, 0.96310739, 0.00135809],
-       [0.02314268, 0.12801221, 0.93605194]])
+       [0.02314268, 0.12801221, 0.93605194]], dtype=np.float16)
     # Precomputed inverse
     lms2rgb = np.array([[ 2.85831110e+00, -1.62870796e+00, -2.48186967e-02],
        [-2.10434776e-01,  1.15841493e+00,  3.20463334e-04],
-       [-4.18895045e-02, -1.18154333e-01,  1.06888657e+00]])
+       [-4.18895045e-02, -1.18154333e-01,  1.06888657e+00]], dtype=np.float16)
     # first go from RBG to LMS space
     lms = transform_colorspace(rgb, rgb2lms)
     # Calculate image as seen by the color blind
@@ -101,7 +101,6 @@ def daltonize(rgb, color_deficit='d'):
     # rgb - sim_rgb contains the color information that dichromats
     # cannot see. err2mod rotates this to a part of the spectrum that
     # they can see.
-    rgb = rgb.convert('RGB')
     err = transform_colorspace(rgb - sim_rgb, err2mod)
     dtpn = err + rgb
     return dtpn
@@ -471,9 +470,6 @@ def inverse_gamma_correction(linear_rgb, gamma=2.4):
         rgb[idx, i] = 255 * 12.92 * linear_rgb[idx, i]
         idx = np.logical_not(idx)
         rgb[idx, i] = 255 * (1.055 * linear_rgb[idx, i]**(1/gamma) - 0.055)
-    max_value = np.max(rgb)
-    if max_value > 255:
-        rgb *= 255 / max_value
     return np.round(rgb)
 
 
@@ -505,7 +501,7 @@ def main():
     if args.type is None:
         args.type = "d"
 
-    orig_img = np.asarray(Image.open(args.input_image).convert("RGB"), dtype=float)
+    orig_img = np.asarray(Image.open(args.input_image).convert("RGB"), dtype=np.float16)
     orig_img = gamma_correction(orig_img, args.gamma)
 
     if args.simulate:
