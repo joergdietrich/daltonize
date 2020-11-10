@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="daltonize", # Replace with your own username
-    version="0.1.0-dev",
+    version="0.1.0",
     author="Jörg Dietrich",
     author_email="joerg@joergdietrich.com",
     description="simulate and correct for color blindness in matplotlib figures and images",
@@ -15,7 +15,7 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     classifiers=[
         'Programming Language :: Python :: 3',
-        "License :: OSI Approved :: GPLv2",
+        "License :: OSI Approved :: GNU General Public License v2 (GPLv2)",
         "Operating System :: OS Independent",
     ],
     python_requires='>=3.6',
