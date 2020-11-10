@@ -49,7 +49,7 @@ optional arguments:
 As a Python module:
 
 ```
-In [1]: import daltonize
+In [1]: from daltonize import daltonize
 
 [ Create a figure ]
 
