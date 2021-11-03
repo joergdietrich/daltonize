@@ -35,8 +35,7 @@ def transform_colorspace(img, mat):
     --------
     out : array of shape (M, N, 3)
     """
-    # Fast element (=pixel) wise matrix multiplication
-    return np.einsum("ij, ...j", mat, img, dtype=np.float16, casting="same_kind")
+    return img @ mat.T
 
 
 def simulate(rgb, color_deficit="d"):
