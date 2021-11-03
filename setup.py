@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="daltonize", # Replace with your own username
-    version="0.1.0",
+    version="0.1.1",
     author="Jörg Dietrich",
     author_email="joerg@joergdietrich.com",
     description="simulate and correct for color blindness in matplotlib figures and images",
