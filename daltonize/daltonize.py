@@ -142,10 +142,7 @@ def clip_array(arr, min_value=0, max_value=255):
     arr : array_like
         clipped such that all values are min_value <= arr <= max_value
     """
-    comp_arr = np.ones_like(arr)
-    arr = np.maximum(comp_arr * min_value, arr)
-    arr = np.minimum(comp_arr * max_value, arr)
-    return arr
+    return np.clip(arr, min_value, max_value)
 
 
 def get_child_colors(child, mpl_colors):
