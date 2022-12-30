@@ -75,15 +75,15 @@ jobs:
           echo "total=$TOTAL" >> $GITHUB_ENV
           echo "### Total coverage: ${TOTAL}%" >> $GITHUB_STEP_SUMMARY
 
-#      - name: "Make badge"
-#        uses: schneegans/dynamic-badges-action@v1.4.0
-#        with:
-#          # GIST_TOKEN is a GitHub personal access token with scope "gist".
-#          auth: ${{ secrets.GIST_TOKEN }}
-#          gistID: fdfe01f268aa013bfbc3f426b2fce781
-#          filename: covbadge.json
-#          label: Coverage
-#          message: ${{ env.total }}%
-#          minColorRange: 50
-#          maxColorRange: 90
-#          valColorRange: ${{ env.total }}
+     - name: "Make badge"
+       uses: schneegans/dynamic-badges-action@v1.4.0
+       with:
+         # GIST_TOKEN is a GitHub personal access token with scope "gist".
+         auth: ${{ secrets.GIST_TOKEN }}
+         gistID: 9deb619232c8098b5e15d259ef5ed534
+         filename: covbadge.json
+         label: Coverage
+         message: ${{ env.total }}%
+         minColorRange: 50
+         maxColorRange: 90
+         valColorRange: ${{ env.total }}
