@@ -7,4 +7,6 @@ dist
 .ipynb_checkpoints/
 doc/colourmaps.pdf
 .vscode
-
+.coverage
+.tox
+coverage.json
