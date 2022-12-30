@@ -24,12 +24,12 @@ def test_inverse_gamma_correction():
     rgb = np.array([[[0, 10, 11, 25, 128, 255]]]).reshape((-1, 1, 3))
     assert_array_almost_equal(rgb, inverse_gamma_correction(gamma_correction(rgb)))
 
-@pytest.mark.parametrize("type, ref_img_path", [("d", Path("data/colored_crayons_d.png")),
-                                                ("p", Path("data/colored_crayons_p.png")),
-                                                ("t", Path("data/colored_crayons_t.png"))])
+@pytest.mark.parametrize("type, ref_img_path", [("d", Path("daltonize/tests/data/colored_crayons_d.png")),
+                                                ("p", Path("daltonize/tests/data/colored_crayons_p.png")),
+                                                ("t", Path("daltonize/tests/data/colored_crayons_t.png"))])
 def test_simulation(type, ref_img_path):
     gamma = 2.4
-    orig_img_path = Path("data/colored_crayons.png")
+    orig_img_path = Path("daltonize/tests/data/colored_crayons.png")
     orig_img = np.asarray(Image.open(orig_img_path).convert("RGB"), dtype=np.float16)
     orig_img = gamma_correction(orig_img, gamma)
     simul_rgb = simulate(orig_img, type)

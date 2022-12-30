@@ -1,5 +1,7 @@
 # Daltonize
 
+![https://github.com/joergdietrich/daltonize/actions](https://img.shields.io/github/actions/workflow/status/joergdietrich/daltonize/main.yml)  ![](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/joergdietrich/9deb619232c8098b5e15d259ef5ed534/raw/covbadge.json)
+
 Daltonize simulates the three types of dichromatic color blindness and
 images and matplotlib figures. Generalizing and omitting a lot of
 details these types are:
