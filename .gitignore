@@ -6,3 +6,5 @@ dist
 /daltonize.egg-info/
 .ipynb_checkpoints/
 doc/colourmaps.pdf
+.vscode
+
