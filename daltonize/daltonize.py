@@ -383,7 +383,9 @@ def simulate_mpl(fig, color_deficit='d', copy=False):
         pfig = pickle.dumps(fig)
         fig = pickle.loads(pfig)
     rgb, alpha, mpl_colors = _prepare_for_transform(fig)
+    rgb = inverse_gamma_correction(rgb) / 255
     sim_rgb = simulate(rgb, color_deficit)
+    sim_rgb = gamma_correction(sim_rgb * 255)
     rgba = _join_rgb_alpha(sim_rgb, alpha)
     set_mpl_colors(mpl_colors, rgba)
     fig.canvas.draw()
@@ -415,7 +417,9 @@ def daltonize_mpl(fig, color_deficit='d', copy=False):
         pfig = pickle.dumps(fig)
         fig = pickle.loads(pfig)
     rgb, alpha, mpl_colors = _prepare_for_transform(fig)
+    rgb = inverse_gamma_correction(rgb) / 255
     dtpn = daltonize(rgb, color_deficit)
+    sim_rgb = gamma_correction(sim_rgb * 255)
     rgba = _join_rgb_alpha(dtpn, alpha)
     set_mpl_colors(mpl_colors, rgba)
     fig.canvas.draw()
@@ -424,9 +428,9 @@ def daltonize_mpl(fig, color_deficit='d', copy=False):
 def gamma_correction(rgb, gamma=2.4):
     """
     Apply sRGB gamma correction
-    :param rgb:
+    :param rgb: array of shape (M, N, 3) with sRGB values in the range [0, 255]
     :param gamma:
-    :return: linear_rgb
+    :return: linear_rgb, array of shape (M, N, 3) with linear sRGB values between in the range [0, 1]
     """
     linear_rgb = np.zeros_like(rgb, dtype=np.float16)
     for i in range(3):
@@ -441,7 +445,7 @@ def inverse_gamma_correction(linear_rgb, gamma=2.4):
 
     :param linear_rgb: array of shape (M, N, 3) with linear sRGB values between in the range [0, 1]
     :param gamma: float
-    :return: array of shape (M, N, 3) with inverse gamma correction applied
+    :return: array of shape (M, N, 3) with inverse gamma correction applied, values in the range [0, 255]
     """
     rgb = np.zeros_like(linear_rgb, dtype=np.float16)
     for i in range(3):
