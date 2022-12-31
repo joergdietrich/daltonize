@@ -22,10 +22,14 @@ setuptools.setup(
     ],
     python_requires='>=3.6',
 
-    install_requires=['numpy>=1.9', 'Pillow'],
+    install_requires=[
+        'numpy>=1.9', 
+        'Pillow',
+        ],
 
     extras_require={
-        'dev': ['pytest'],
+        'test': ['matplotlib>=3.0.0',
+            'pytest'],
     },
 
     # To provide executable scripts, use entry points in preference to the
