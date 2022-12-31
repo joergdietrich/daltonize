@@ -211,12 +211,13 @@ def get_key_colors(mpl_colors, rgb, alpha):
     if _NO_MPL is True:
         raise ImportError("matplotlib not found, "
                           "can only deal with pixel images")
-    cc = mpl.colors.ColorConverter()  # pylint: disable=invalid-name
     for color_key in COLOR_KEYS:
         try:
             color = mpl_colors[color_key]
             # skip unset colors, otherwise they are turned into black.
             if isinstance(color, str) and color == 'none':
+                continue
+            if isinstance(color, mpl.colors.ListedColormap):
                 continue
             if isinstance(color, mpl.colors.LinearSegmentedColormap):
                 rgba = color(np.arange(color.N))
@@ -225,7 +226,7 @@ def get_key_colors(mpl_colors, rgb, alpha):
                 a = np.zeros((color.shape[0], 1))  # pylint: disable=invalid-name
                 rgba = np.hstack((color, a))
             else:
-                rgba = cc.to_rgba_array(color)
+                rgba = mpl.colors.to_rgba_array(color)
             rgb = np.append(rgb, rgba[:, :3])
             alpha = np.append(alpha, rgba[:, 3])
         except KeyError:
@@ -280,6 +281,8 @@ def _set_colors_from_array(instance, mpl_colors, rgba, i=0):
             else:
                 # skip unset colors, otherwise they are turned into black.
                 if isinstance(color, str) and color == 'none':
+                    continue
+                if isinstance(color, mpl.colors.ListedColormap):
                     continue
                 color_shape = cc.to_rgba_array(color).shape
                 j = color_shape[0]
