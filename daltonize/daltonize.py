@@ -290,6 +290,10 @@ def _set_colors_from_array(instance, mpl_colors, rgba, i=0):
             if color_key == "color":
                 instance.set_color(target_color)
             elif color_key == "fc":
+                # Circumvent https://github.com/matplotlib/matplotlib/issues/13131 by setting
+                # the cmap to None, which would otherwise take precedence over explicitly set colors.
+                if hasattr(instance, "set_array"):
+                    instance.set_array(None)
                 instance.set_facecolor(target_color)
             elif color_key == "ec":
                 instance.set_edgecolor(target_color)
