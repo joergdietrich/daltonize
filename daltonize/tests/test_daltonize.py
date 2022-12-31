@@ -40,11 +40,14 @@ class TestDaltonize():
         ref_img = np.asarray(Image.open(ref_img_path).convert("RGB"))
         assert_array_almost_equal(simul_img, ref_img)
 
-    @image_comparison(["imshow_crayons_d.png"], remove_text=True,
-                      savefig_kwarg={"dpi": 40})
+    @image_comparison([
+        "imshow_crayons_d_daltonized.png",
+        "imshow_crayons_d.png", 
+        ], remove_text=True,
+                       savefig_kwarg={"dpi": 40})
     def test_mpl_imshow(self):
         fig = plt.figure()
         img = Image.open(Path("daltonize/tests/data/colored_crayons.png"))
         plt.imshow(img)
-        fig = simulate_mpl(fig)
-        
+        dalt_fig = simulate_mpl(fig, copy=True)
+        fig = daltonize_mpl(fig)

@@ -419,7 +419,7 @@ def daltonize_mpl(fig, color_deficit='d', copy=False):
     rgb, alpha, mpl_colors = _prepare_for_transform(fig)
     rgb = inverse_gamma_correction(rgb) / 255
     dtpn = daltonize(rgb, color_deficit)
-    sim_rgb = gamma_correction(sim_rgb * 255)
+    sim_rgb = gamma_correction(dtpn * 255)
     rgba = _join_rgb_alpha(dtpn, alpha)
     set_mpl_colors(mpl_colors, rgba)
     fig.canvas.draw()
