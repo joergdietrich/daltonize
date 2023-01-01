@@ -69,7 +69,7 @@ class TestDaltonize():
         "imshow_scatter_with_colorbar_p_daltonized.png",
         "imshow_scatter_with_colorbar_p.png", 
         ], remove_text=True,
-                       savefig_kwarg={"dpi": 240})
+                       savefig_kwarg={"dpi": 40})
     def test_mpl_scatter_with_colorbar(self):
         fig = plt.figure()
         np.random.seed(1)
