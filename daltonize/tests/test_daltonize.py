@@ -30,7 +30,7 @@ class TestDaltonize():
     @pytest.mark.parametrize("type, ref_img_path", [("d", Path("daltonize/tests/data/colored_crayons_d.png")),
                                                     ("p", Path("daltonize/tests/data/colored_crayons_p.png")),
                                                     ("t", Path("daltonize/tests/data/colored_crayons_t.png"))])
-    def test_simulation(self, type, ref_img_path):
+    def test_simulate(self, type, ref_img_path):
         gamma = 2.4
         orig_img_path = Path("daltonize/tests/data/colored_crayons.png")
         orig_img = np.asarray(Image.open(orig_img_path).convert("RGB"), dtype=np.float16)
@@ -62,6 +62,21 @@ class TestDaltonize():
         fig = plt.figure()
         img = Image.open(Path("daltonize/tests/data/colored_crayons.png"))
         plt.imshow(img)
-        dalt_fig = simulate_mpl(fig, copy=True)
+        sim_fig = simulate_mpl(fig, copy=True)
         fig = daltonize_mpl(fig)
+
+    @image_comparison([
+        "imshow_scatter_with_colorbar_p_daltonized.png",
+        "imshow_scatter_with_colorbar_p.png", 
+        ], remove_text=True,
+                       savefig_kwarg={"dpi": 240})
+    def test_mpl_scatter_with_colorbar(self):
+        fig = plt.figure()
+        np.random.seed(1)
+        x = np.random.random(size=50)
+        y = np.random.random(size=50)
+        plt.scatter(x, y, c=y, cmap="rainbow")
+        plt.colorbar()
+        sim_fig = simulate_mpl(fig, color_deficit="p", copy=True)
+        fig = daltonize_mpl(fig, color_deficit="p")
 

@@ -377,6 +377,8 @@ def simulate_mpl(fig, color_deficit='d', copy=False):
     --------
     fig : matplotlib.figure.Figure
     """
+    # Ensure that everything that was specified is actually drawn
+    fig.canvas.draw()
     if copy:
         # mpl.transforms cannot be copy.deepcopy()ed. Thus we resort
         # to pickling.
@@ -411,6 +413,8 @@ def daltonize_mpl(fig, color_deficit='d', copy=False):
     --------
     fig : matplotlib.figure.Figure
     """
+    # Ensure that everything that was specified is actually drawn
+    fig.canvas.draw()
     if copy:
         # mpl.transforms cannot be copy.deepcopy()ed. Thus we resort
         # to pickling.
