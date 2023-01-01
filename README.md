@@ -19,6 +19,10 @@ to simulate and correct for color blindness in matplotlib figures.
 This allows to create color blind friendly vector graphics suitable
 for publication.
 
+Color vision deficiencies are in fact very complex and can differ in intensity from person to person.
+The algorithms used in here and in many other comparable software packages are based on often simplifying assumptions. [Nicolas Burrus](http://nicolas.burrus.name/) discusses these simplification and reviews daltonize and other software packages in this [blog post](https://daltonlens.org/opensource-cvd-simulation/).
+
+
 ## Installation
 
 ```
