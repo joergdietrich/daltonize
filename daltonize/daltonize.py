@@ -474,7 +474,7 @@ def main():
                              "(most common)")
     parser.add_argument("-g", "--gamma", type=float, default=2.4,
                         help="value of gamma correction to be applied before transformation. The default "
-                             "applies the standard sRGB correction with an exponent of 2.4"
+                             "applies the standard sRGB correction with an exponent of 2.4 "
                              "Use 1 for no gamma correction.")
     args = parser.parse_args()
 

@@ -2,7 +2,7 @@
 
 ![https://github.com/joergdietrich/daltonize/actions](https://img.shields.io/github/actions/workflow/status/joergdietrich/daltonize/main.yml)  ![](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/joergdietrich/9deb619232c8098b5e15d259ef5ed534/raw/covbadge.json)
 
-Daltonize simulates the three types of dichromatic color blindness and
+Daltonize simulates the three types of dichromatic color blindness for
 images and matplotlib figures. Generalizing and omitting a lot of
 details these types are:
 
@@ -10,7 +10,7 @@ details these types are:
 * Protanopia: red weakness
 * Tritanopia: blue weakness (extremely rare)
 
-Daltonize can also adjust the color palette of an input image such
+Daltonize can also adjust the color palette of an input image or matplotlib figure such
 that a color blind person can perceive the full information
 content. It can be used as a command line tool to convert pixel images
 but also as a Python module. If used as the latter, it provides an API
@@ -97,7 +97,7 @@ the `-s/--simulate` option and `-t/--type d` or `p` on these images.
 ### Deuteranopia
 
 ```
-python daltonize.py -s -t=d example_images/Ishihara_Plate_3.jpg example_images/Ishihara_Plate_3-Deuteranopia.jpg
+daltonize.py -s -t=d example_images/Ishihara_Plate_3.jpg example_images/Ishihara_Plate_3-Deuteranopia.jpg
 ```
 
 ![IshiharaPlate3](example_images/Ishihara_Plate_3-Deuteranopia.jpg)
@@ -105,7 +105,7 @@ python daltonize.py -s -t=d example_images/Ishihara_Plate_3.jpg example_images/I
 ### Protanopia
 
 ```
-python daltonize.py -s -t=p example_images/Ishihara_Plate_3.jpg example_images/Ishihara_Plate_3-Protanopia.jpg
+daltonize.py -s -t=p example_images/Ishihara_Plate_3.jpg example_images/Ishihara_Plate_3-Protanopia.jpg
 ```
 
 ![IshiharaPlate3](example_images/Ishihara_Plate_3-Protanopia.jpg)
