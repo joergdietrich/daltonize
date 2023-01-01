@@ -40,6 +40,19 @@ class TestDaltonize():
         ref_img = np.asarray(Image.open(ref_img_path).convert("RGB"))
         assert_array_almost_equal(simul_img, ref_img)
 
+    @pytest.mark.parametrize("type, ref_img_path", [("d", Path("daltonize/tests/data/colored_crayons_daltonized_d.png")),
+                                                    ("p", Path("daltonize/tests/data/colored_crayons_daltonized_p.png")),
+                                                    ("t", Path("daltonize/tests/data/colored_crayons_daltonized_t.png"))])
+    def test_daltonize(self, type, ref_img_path):
+        gamma = 2.4
+        orig_img_path = Path("daltonize/tests/data/colored_crayons.png")
+        orig_img = np.asarray(Image.open(orig_img_path).convert("RGB"), dtype=np.float16)
+        orig_img = gamma_correction(orig_img, gamma)
+        simul_rgb = daltonize(orig_img, type)
+        simul_img = np.asarray(array_to_img(simul_rgb, gamma=gamma))
+        ref_img = np.asarray(Image.open(ref_img_path).convert("RGB"))
+        assert_array_almost_equal(simul_img, ref_img)
+
     @image_comparison([
         "imshow_crayons_d_daltonized.png",
         "imshow_crayons_d.png", 
@@ -51,3 +64,4 @@ class TestDaltonize():
         plt.imshow(img)
         dalt_fig = simulate_mpl(fig, copy=True)
         fig = daltonize_mpl(fig)
+
