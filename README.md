@@ -97,7 +97,7 @@ the `-s/--simulate` option and `-t/--type d` or `p` on these images.
 ### Deuteranopia
 
 ```
-daltonize.py -s -t=d example_images/Ishihara_Plate_3.jpg example_images/Ishihara_Plate_3-Deuteranopia.jpg
+daltonize -s -t=d example_images/Ishihara_Plate_3.jpg example_images/Ishihara_Plate_3-Deuteranopia.jpg
 ```
 
 ![IshiharaPlate3](example_images/Ishihara_Plate_3-Deuteranopia.jpg)
@@ -105,7 +105,7 @@ daltonize.py -s -t=d example_images/Ishihara_Plate_3.jpg example_images/Ishihara
 ### Protanopia
 
 ```
-daltonize.py -s -t=p example_images/Ishihara_Plate_3.jpg example_images/Ishihara_Plate_3-Protanopia.jpg
+daltonize -s -t=p example_images/Ishihara_Plate_3.jpg example_images/Ishihara_Plate_3-Protanopia.jpg
 ```
 
 ![IshiharaPlate3](example_images/Ishihara_Plate_3-Protanopia.jpg)
