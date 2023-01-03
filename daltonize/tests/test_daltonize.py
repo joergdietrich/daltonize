@@ -7,7 +7,10 @@ from PIL import Image
 import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib.testing.decorators import image_comparison
+from matplotlib.testing.conftest import mpl_test_settings
 from numpy.testing import (assert_equal, assert_array_almost_equal)
+
+from matplotlib import _pylab_helpers
 
 from daltonize.daltonize import *
 
@@ -71,6 +74,7 @@ class TestDaltonize():
         ], remove_text=True,
                        savefig_kwarg={"dpi": 40})
     def test_mpl_scatter_with_colorbar(self):
+        print("0 ", _pylab_helpers.Gcf.figs)
         fig = plt.figure()
         np.random.seed(1)
         x = np.random.random(size=50)
