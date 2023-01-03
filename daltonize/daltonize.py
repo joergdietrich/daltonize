@@ -21,6 +21,7 @@ try:
 except ImportError:
     _NO_MPL = True
 
+COLOR_KEYS = ("color", "fc", "ec", "mec", "mfc", "mfcalt", "cmap", "array")
 
 def transform_colorspace(img, mat):
     """Transform image to a different color space.
@@ -44,7 +45,7 @@ def simulate(rgb, color_deficit="d"):
     Arguments:
     ----------
     rgb : array of shape (M, N, 3)
-        original image in RGB format
+        original image in RGB format, values must be [0, 1] bounded
     color_deficit : {"d", "p", "t"}, optional
         type of colorblindness, d for deuteronopia (default),
         p for protonapia,
@@ -74,7 +75,7 @@ def simulate(rgb, color_deficit="d"):
     sim_lms = transform_colorspace(lms, cb_matrices[color_deficit])
     # Transform back to RBG
     sim_rgb = transform_colorspace(sim_lms, lms2rgb)
-    return sim_rgb
+    return np.clip(sim_rgb, 0, 1)
 
 
 def daltonize(rgb, color_deficit='d'):
@@ -84,7 +85,7 @@ def daltonize(rgb, color_deficit='d'):
     Arguments:
     ----------
     rgb : array of shape (M, N, 3)
-        original image in RGB format
+        original image in RGB format, values must be [0, 1] bounded
     color_deficit : {"d", "p", "t"}, optional
         type of colorblindness, d for deuteronopia (default),
         p for protonapia,
@@ -102,7 +103,7 @@ def daltonize(rgb, color_deficit='d'):
     # they can see.
     err = transform_colorspace(rgb - sim_rgb, err2mod)
     dtpn = err + rgb
-    return dtpn
+    return np.clip(dtpn, 0, 1)
 
 
 def array_to_img(arr, gamma=2.4):
@@ -120,32 +121,10 @@ def array_to_img(arr, gamma=2.4):
     """
     # clip values to lie in the range [0, 255]
     arr = inverse_gamma_correction(arr, gamma=gamma)
-    arr = clip_array(arr)
+    arr = np.clip(arr, 0, 255)
     arr = arr.astype('uint8')
     img = Image.fromarray(arr, mode='RGB')
     return img
-
-
-def clip_array(arr, min_value=0, max_value=255):
-    """Ensure that all values in an array are between min and max values.
-
-    Arguments:
-    ----------
-    arr : array_like
-    min_value : float, optional
-        default 0
-    max_value : float, optional
-        default 255
-
-    Returns:
-    --------
-    arr : array_like
-        clipped such that all values are min_value <= arr <= max_value
-    """
-    comp_arr = np.ones_like(arr)
-    arr = np.maximum(comp_arr * min_value, arr)
-    arr = np.minimum(comp_arr * max_value, arr)
-    return arr
 
 
 def get_child_colors(child, mpl_colors):
@@ -232,15 +211,13 @@ def get_key_colors(mpl_colors, rgb, alpha):
     if _NO_MPL is True:
         raise ImportError("matplotlib not found, "
                           "can only deal with pixel images")
-    cc = mpl.colors.ColorConverter()  # pylint: disable=invalid-name
-    # Note that the order must match the insertion order in
-    # get_child_colors()
-    color_keys = ("color", "fc", "ec", "mec", "mfc", "mfcalt", "cmap", "array")
-    for color_key in color_keys:
+    for color_key in COLOR_KEYS:
         try:
             color = mpl_colors[color_key]
             # skip unset colors, otherwise they are turned into black.
             if isinstance(color, str) and color == 'none':
+                continue
+            if isinstance(color, mpl.colors.ListedColormap):
                 continue
             if isinstance(color, mpl.colors.LinearSegmentedColormap):
                 rgba = color(np.arange(color.N))
@@ -249,13 +226,13 @@ def get_key_colors(mpl_colors, rgb, alpha):
                 a = np.zeros((color.shape[0], 1))  # pylint: disable=invalid-name
                 rgba = np.hstack((color, a))
             else:
-                rgba = cc.to_rgba_array(color)
+                rgba = mpl.colors.to_rgba_array(color)
             rgb = np.append(rgb, rgba[:, :3])
             alpha = np.append(alpha, rgba[:, 3])
         except KeyError:
             pass
         for key in mpl_colors.keys():
-            if key in color_keys:
+            if key in COLOR_KEYS:
                 continue
             rgb, alpha = get_key_colors(mpl_colors[key], rgb, alpha)
     return rgb, alpha
@@ -293,10 +270,8 @@ def _set_colors_from_array(instance, mpl_colors, rgba, i=0):
     Set object instance colors to the modified ones in rgba.
     """
     cc = mpl.colors.ColorConverter()  # pylint: disable=invalid-name
-    # Note that the order must match the insertion order in
-    # get_child_colors()
-    color_keys = ("color", "fc", "ec", "mec", "mfc", "mfcalt", "cmap", "array")
-    for color_key in color_keys:
+
+    for color_key in COLOR_KEYS:
         try:
             color = mpl_colors[color_key]
             if isinstance(color, mpl.colors.LinearSegmentedColormap):
@@ -307,6 +282,8 @@ def _set_colors_from_array(instance, mpl_colors, rgba, i=0):
                 # skip unset colors, otherwise they are turned into black.
                 if isinstance(color, str) and color == 'none':
                     continue
+                if isinstance(color, mpl.colors.ListedColormap):
+                    continue
                 color_shape = cc.to_rgba_array(color).shape
                 j = color_shape[0]
             target_color = rgba[i: i + j, :]
@@ -316,6 +293,10 @@ def _set_colors_from_array(instance, mpl_colors, rgba, i=0):
             if color_key == "color":
                 instance.set_color(target_color)
             elif color_key == "fc":
+                # Circumvent https://github.com/matplotlib/matplotlib/issues/13131 by setting
+                # the cmap to None, which would otherwise take precedence over explicitly set colors.
+                if hasattr(instance, "set_array"):
+                    instance.set_array(None)
                 instance.set_facecolor(target_color)
             elif color_key == "ec":
                 instance.set_edgecolor(target_color)
@@ -371,7 +352,6 @@ def _join_rgb_alpha(rgb, alpha):
     """
     Combine (m, n, 3) rgb and (m, n) alpha array into (m, n, 4) rgba.
     """
-    rgb = clip_array(rgb, 0, 1)
     r, g, b = np.split(rgb, 3, 2)  # pylint: disable=invalid-name, unbalanced-tuple-unpacking
     rgba = np.concatenate((r, g, b, alpha.reshape(alpha.size, 1, 1)),
                           axis=2).reshape(-1, 4)
@@ -397,13 +377,17 @@ def simulate_mpl(fig, color_deficit='d', copy=False):
     --------
     fig : matplotlib.figure.Figure
     """
+    # Ensure that everything that was specified is actually drawn
+    fig.canvas.draw()
     if copy:
         # mpl.transforms cannot be copy.deepcopy()ed. Thus we resort
         # to pickling.
         pfig = pickle.dumps(fig)
         fig = pickle.loads(pfig)
     rgb, alpha, mpl_colors = _prepare_for_transform(fig)
-    sim_rgb = simulate(array_to_img(rgb * 255), color_deficit) / 255
+    rgb = inverse_gamma_correction(rgb) / 255
+    sim_rgb = simulate(rgb, color_deficit)
+    sim_rgb = gamma_correction(sim_rgb * 255)
     rgba = _join_rgb_alpha(sim_rgb, alpha)
     set_mpl_colors(mpl_colors, rgba)
     fig.canvas.draw()
@@ -429,13 +413,17 @@ def daltonize_mpl(fig, color_deficit='d', copy=False):
     --------
     fig : matplotlib.figure.Figure
     """
+    # Ensure that everything that was specified is actually drawn
+    fig.canvas.draw()
     if copy:
         # mpl.transforms cannot be copy.deepcopy()ed. Thus we resort
         # to pickling.
         pfig = pickle.dumps(fig)
         fig = pickle.loads(pfig)
     rgb, alpha, mpl_colors = _prepare_for_transform(fig)
-    dtpn = daltonize(array_to_img(rgb * 255), color_deficit) / 255
+    rgb = inverse_gamma_correction(rgb) / 255
+    dtpn = daltonize(rgb, color_deficit)
+    sim_rgb = gamma_correction(dtpn * 255)
     rgba = _join_rgb_alpha(dtpn, alpha)
     set_mpl_colors(mpl_colors, rgba)
     fig.canvas.draw()
@@ -444,9 +432,9 @@ def daltonize_mpl(fig, color_deficit='d', copy=False):
 def gamma_correction(rgb, gamma=2.4):
     """
     Apply sRGB gamma correction
-    :param rgb:
+    :param rgb: array of shape (M, N, 3) with sRGB values in the range [0, 255]
     :param gamma:
-    :return: linear_rgb
+    :return: linear_rgb, array of shape (M, N, 3) with linear sRGB values between in the range [0, 1]
     """
     linear_rgb = np.zeros_like(rgb, dtype=np.float16)
     for i in range(3):
@@ -461,7 +449,7 @@ def inverse_gamma_correction(linear_rgb, gamma=2.4):
 
     :param linear_rgb: array of shape (M, N, 3) with linear sRGB values between in the range [0, 1]
     :param gamma: float
-    :return: array of shape (M, N, 3) with inverse gamma correction applied
+    :return: array of shape (M, N, 3) with inverse gamma correction applied, values in the range [0, 255]
     """
     rgb = np.zeros_like(linear_rgb, dtype=np.float16)
     for i in range(3):
@@ -490,7 +478,7 @@ def main():
                              "(most common)")
     parser.add_argument("-g", "--gamma", type=float, default=2.4,
                         help="value of gamma correction to be applied before transformation. The default "
-                             "applies the standard sRGB correction with an exponent of 2.4"
+                             "applies the standard sRGB correction with an exponent of 2.4 "
                              "Use 1 for no gamma correction.")
     args = parser.parse_args()
 
