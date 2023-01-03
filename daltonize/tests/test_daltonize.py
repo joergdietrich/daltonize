@@ -72,7 +72,6 @@ class TestDaltonize():
         ], remove_text=True,
                        savefig_kwarg={"dpi": 40})
     def test_mpl_scatter_with_colorbar(self):
-        print("0 ", _pylab_helpers.Gcf.figs)
         fig = plt.figure()
         np.random.seed(1)
         x = np.random.random(size=50)
