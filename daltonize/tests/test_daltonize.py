@@ -10,8 +10,6 @@ from matplotlib.testing.decorators import image_comparison
 from matplotlib.testing.conftest import mpl_test_settings
 from numpy.testing import (assert_equal, assert_array_almost_equal)
 
-from matplotlib import _pylab_helpers
-
 from daltonize.daltonize import *
 
 class TestDaltonize():
